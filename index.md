@@ -5,3 +5,5 @@
 layout: home
 background: 'img/bg-index.jpg'
 ---
+
+<!--<a href="https://www.freepik.com/free-photos-vectors/background">Background vector created by pikisuperstar - www.freepik.com</a>-->
