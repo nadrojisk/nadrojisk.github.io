@@ -6,9 +6,9 @@ baseurl:            ""
 url:                ""
 
 # Social Profiles
-# twitter_username:   nadrojisk
 github_username:    nadrojisk
-# linkedin_username:
+# twitter_username:   nadrojisk
+# linkedin_username: jordan-sosnowski-3157a449
 
 # Add your google-analytics ID here to activate google analytics
 google_analytics:   UA-154891082-1 # out your google-analytics code
