@@ -59,7 +59,7 @@ plugins:
 
 author:
   name   : "Jordan Sosnowski"
-  avatar : "/assets/images/bio-photo.jpg"
+  avatar : "/assets/img/bio-photo.jpg"
   bio    : "Masters student at Auburn University studying Cybersecurity"
   links:
     # - label: "Website"
