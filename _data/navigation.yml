@@ -7,3 +7,16 @@ main:
     url: /tags/
   - title: "About"
     url: /online-cv/
+
+# ctf links
+ctfs:
+  - title: UMassCTF 2020
+    children:
+      - title: "Reversing"
+        url: /ctf/umass/rev
+      - title: "PWN"
+        url: /ctf/umass/pwn
+  - title: picoCTF 2019
+    children:
+      - title: "Reversing"
+        url: /ctf/pico/rev
