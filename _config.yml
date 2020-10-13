@@ -91,7 +91,7 @@ footer:
       url: "https://github.com/nadrojisk"
     - label: "LinkedIn"
       icon: "fab fa-fw fa-linkedin"
-      url: "https://www.linkedin.com/in/jordan-sosnowski-3157a449/"
+      url: "https://www.linkedin.com/in/nadrojisk/"
     # - label: "Instagram"
     #   icon: "fab fa-fw fa-instagram"
     #   url: "https://instagram.com/"
@@ -102,7 +102,7 @@ footer:
 defaults:
   # _posts
   - scope:
-      path: ""
+      path: "_posts"
       type: posts
     values:
       layout: single
@@ -111,6 +111,7 @@ defaults:
       comments: true
       share: true
       related: true
+      classes: wide
 
   # _pages
   - scope:
