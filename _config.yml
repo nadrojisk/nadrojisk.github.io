@@ -60,7 +60,7 @@ plugins:
 author:
   name   : "Jordan Sosnowski"
   avatar : "/assets/images/bio-photo.jpg"
-  bio    : "Masters student at Auburn University studying Cybersecurity"
+  bio    : "Incident Response with a focus on malware analysis"
   links:
     # - label: "Website"
     #   icon: "fas fa-fw fa-link"
