@@ -60,7 +60,7 @@ plugins:
 author:
   name   : "Jordan Sosnowski"
   avatar : "/assets/images/bio-photo.jpg"
-  bio    : "Incident Response with a focus on malware analysis"
+  bio    : "Masters student at Auburn University studying Cybersecurity"
   links:
     # - label: "Website"
     #   icon: "fas fa-fw fa-link"
@@ -76,10 +76,10 @@ author:
     #   url: "https://instagram.com/"
     - label: "LinkedIn"
       icon: "fab fa-fw fa-linkedin"
-      url: "https://www.linkedin.com/in/nadrojisk/"
+      url: "https://www.linkedin.com/in/jordan-sosnowski-3157a449/"
     - label: "Email"
       icon: "far fa-fw fa-envelope"
-      url: "mailto:jordan.sosnowski@pm.me"
+      url: "mailto:jjs0029@auburn.edu"
 
 footer:
   links:
@@ -91,7 +91,7 @@ footer:
       url: "https://github.com/nadrojisk"
     - label: "LinkedIn"
       icon: "fab fa-fw fa-linkedin"
-      url: "https://www.linkedin.com/in/nadrojisk/"
+      url: "https://www.linkedin.com/in/jordan-sosnowski-3157a449/"
     # - label: "Instagram"
     #   icon: "fab fa-fw fa-instagram"
     #   url: "https://instagram.com/"
@@ -102,7 +102,7 @@ footer:
 defaults:
   # _posts
   - scope:
-      path: "_posts"
+      path: ""
       type: posts
     values:
       layout: single
@@ -111,7 +111,6 @@ defaults:
       comments: true
       share: true
       related: true
-      classes: wide
 
   # _pages
   - scope:
