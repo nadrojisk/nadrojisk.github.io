@@ -271,8 +271,9 @@ To summarize it the script pulls a file from a malicious domain and saves it to 
 
 Full files can be found at my [malware-research repo](https://github.com/nadrojisk/malware-research/blob/master/symbol_obfuscation_ps.zip).
 
-# References
-- Original Tweet: <https://twitter.com/LawrenceAbrams/status/1514634960833073158?s=20&t=vIa0fSK3stteiaPvVlZ0VQ>
-- Repository full of fun Powershell obfuscation techniques: <https://github.com/danielbohannon/Invoke-Obfuscation>
-- Blog post explaining similar Powershell script: <https://pcsxcetrasupport3.wordpress.com/2018/10/28/understanding-invoke-x-special-character-encoding/>
-- Original post explaining this technique: <https://perl-users.jp/articles/advent-calendar/2010/sym/11>
+# Useful Links
+
+- [Original Tweet](https://twitter.com/LawrenceAbrams/status/1514634960833073158?s=20&t=vIa0fSK3stteiaPvVlZ0VQ)
+- [Repository full of fun Powershell obfuscation techniques](https://github.com/danielbohannon/Invoke-Obfuscation)
+- [Blog post explaining similar Powershell script](https://pcsxcetrasupport3.wordpress.com/2018/10/28/understanding-invoke-x-special-character-encoding/)
+- [Original post explaining this technique](https://perl-users.jp/articles/advent-calendar/2010/sym/11)
