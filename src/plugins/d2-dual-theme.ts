@@ -15,7 +15,8 @@ const SCOPE_ID_PATTERN = /\bd2-\d+\b/;
 function splitD2ThemeCss(css: string): { light: string; dark: string } | undefined {
 	const root = postcss.parse(css);
 	const hasDarkMedia = root.nodes.some(
-		(node) => node.type === "atrule" && node.name === "media" && DARK_MEDIA_PATTERN.test(node.params),
+		(node) =>
+			node.type === "atrule" && node.name === "media" && DARK_MEDIA_PATTERN.test(node.params),
 	);
 	if (!hasDarkMedia) return undefined;
 
@@ -31,7 +32,7 @@ function splitD2ThemeCss(css: string): { light: string; dark: string } | undefin
 		// they win by source order at equal specificity, then drop the
 		// (OS-only) media wrapper -- this is what makes the site's manual
 		// `data-theme` toggle apply the same rules the media query would.
-		rule.after(rule.nodes.map((child) => child.clone()));
+		rule.after((rule.nodes ?? []).map((child) => child.clone()));
 		rule.remove();
 	});
 
@@ -40,7 +41,13 @@ function splitD2ThemeCss(css: string): { light: string; dark: string } | undefin
 
 /** Replace the single `<style>` block (of possibly several -- D2 also emits
  *  one for @font-face rules) that carries the dark-mode media query. */
-function withStyleContent(svgHtml: string, matchStart: number, matchEnd: number, wasCdata: boolean, css: string) {
+function withStyleContent(
+	svgHtml: string,
+	matchStart: number,
+	matchEnd: number,
+	wasCdata: boolean,
+	css: string,
+) {
 	const replacement = wasCdata ? `<![CDATA[${css}]]>` : css;
 	return svgHtml.slice(0, matchStart) + replacement + svgHtml.slice(matchEnd);
 }
@@ -66,9 +73,14 @@ export function satteriD2DualThemePlugin(): HastPluginDefinition {
 				if (!DARK_MEDIA_PATTERN.test(inner)) continue;
 
 				const cdataMatch = CDATA_PATTERN.exec(inner);
-				const css = cdataMatch ? cdataMatch[1] ?? "" : inner;
+				const css = cdataMatch ? (cdataMatch[1] ?? "") : inner;
 				const contentStart = match.index! + match[0].indexOf(inner);
-				target = { start: contentStart, end: contentStart + inner.length, css, wasCdata: !!cdataMatch };
+				target = {
+					start: contentStart,
+					end: contentStart + inner.length,
+					css,
+					wasCdata: !!cdataMatch,
+				};
 				break;
 			}
 			if (!target) return;
@@ -76,8 +88,20 @@ export function satteriD2DualThemePlugin(): HastPluginDefinition {
 			const split = splitD2ThemeCss(target.css);
 			if (!split) return;
 
-			let lightHtml = withStyleContent(node.value, target.start, target.end, target.wasCdata, split.light);
-			let darkHtml = withStyleContent(node.value, target.start, target.end, target.wasCdata, split.dark);
+			let lightHtml = withStyleContent(
+				node.value,
+				target.start,
+				target.end,
+				target.wasCdata,
+				split.light,
+			);
+			let darkHtml = withStyleContent(
+				node.value,
+				target.start,
+				target.end,
+				target.wasCdata,
+				split.dark,
+			);
 
 			const scopeId = SCOPE_ID_PATTERN.exec(node.value)?.[0];
 			if (scopeId) {
