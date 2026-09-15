@@ -56,6 +56,8 @@
 		"typescript": "^6.0.3"
 	},
 	"overrides": {
-		"sharp": "^0.34.5"
+		"astro-webmanifest": {
+			"sharp": "^0.34.5"
+		}
 	}
 }
