@@ -1,0 +1,159 @@
+---
+title: PMA Chapter One - Summary
+description: PMA Chapter One - Summary
+publishDate: 2019-12-21
+tags:
+- malware analysis
+- practical malware analysis
+- basic static analysis
+- summary
+draft: true
+---
+
+
+![PMA Chapter One](/assets/images/posts/ch1/pma_1.jpg)
+*Photo credit: [**freepik**](https://www.freepik.com/free-photos-vectors/Background)*
+
+In this post we are going to discuss chapter one of [Practical Malware Analysis (PMA)](https://nostarch.com/malware)!
+If you do not already own it I highly recommend it; as it is a fantastic resource for anyone interested in malware analysis, or reverse engineering!
+
+:::note
+*PMA is focused on Windows executables.
+Due to that many of the concepts are on Window API concepts, however most of the high level ideas can be applied for any operating system.*
+:::
+
+Chapter one of PMA is focused on **basic static analysis** of binary files.
+For binary analysis there are two forms of analysis **static** and **dynamic**; each have a basic and advanced form.
+**Basic static analysis** is analysis that only looks at the metadata that can be retrieved from an executable.
+Files are ***NOT*** run during this step!
+Nor are they disassembled.
+
+## Scanning and Hashing
+
+A good first step in malware analysis is to see if the file you are analyzing has been seen before.
+This step can be done before looking at any metadata stored within an executable.
+Looking online to see if a malware that you have already has been analyzed can be extremely helpful.
+[Virus Total](https://www.virustotal.com/gui/home/upload) is a fantastic website that allows users to upload samples of files that they believe to be malicious.
+However, be aware that posting malware samples online during an investigation can be counterproductive.
+If the malware author becomes aware that someone is trying to analyze their malware they may try to change tactics...
+
+Hashing is a common method to uniquely identify files and in particular malware.
+A good hashing algorithm is a 1 -> 1 function, that is, when data is sent into a hashing algorithm the output is unique to only that input data.
+For example, if I were send a file into SHA1 its output should always be the same for that file, and no other file should be able to reproduce the output of my file, unless they are the same files.
+
+```bash
+$ echo "hello" | shasum
+f572d396fae9206628714fb2ce00f72e94f2258f  -
+```
+
+```bash
+$ echo "Hello" | shasum
+1d229271928d3f9e2bb0375bd6ce5db6c6d348d9  -
+```
+
+## Strings
+
+Searching through strings, a sequence of characters, in a program is a easy way to get hints about a programs purpose.
+For example, if you searched through the strings of a program and found a bunch of IP addresses and domain names one may assume the program has some sort of networking functionality.
+If you were to find verbs like "sleep", "execute", "download" you may assume that the program takes commands from a server.
+
+The [strings](https://docs.microsoft.com/en-us/sysinternals/downloads/strings) utility can be used to find both ASCII and UNICODE strings found inside a program.
+However, it is not installed by default on Windows.
+
+:::note
+*By default strings, on Windows, ignores "strings" less than 3 characters.*
+:::
+
+An alternative tool to strings is [FLOSS](https://github.com/fireeye/flare-floss).
+FLOSS is made by FireEye Labs Advanced Reverse Engineering or FLARE.
+Other than just pulling basic strings out of a binary it attempts to find obfuscated strings using advanced static analysis.
+FLOSS, by default, is much slower than strings as it attempts to find obfuscated strings.
+However, there is a flag you can provide to not run any de-obfuscation.
+
+## Packed Binaries
+
+Malware writers want their malware to succeed; to do that they need to write malware that is difficult to analyze.
+Therefore, it is common to see malware that is packed or obfuscated in some way.
+
+**Obfuscated programs** are programs that have had their internals manipulated in a way to deter or confused malware analysts.
+Like [movfuscator](https://github.com/xoreaxeaxeax/movfuscator), one of the most horrendous obfuscators out there...
+
+**Packing** malware is a way to compress a program and can be considered a subset of obfuscation.
+Malware that has been packed use a small wrapper program to decompress the packed file.
+Therefore when looking at a packed file, most of the time you are looking at the unpacker not the actual malware.
+
+[PEiD](https://www.aldeid.com/wiki/PEiD) is a fantastic tool to detect packed files.
+Unfortunately, PEiD is no longer supported. Therefore, many newer packed malware will not be detected by it.
+
+A quick way to see if a malware is packed is to look at the sections in the PE file.
+If the normal PE sections are not there and have been replaced that is a good indicator.
+For instance UPX, a common packer, will replace the sections with *UPX01, UPX02, UPX03*.
+Another way of determining if a file is packed is by looking at the sections Raw Size and Virtual Size.
+The **raw size** is a binary's section's size on the disk and the virtual size is the binary's section's size one loaded into memory.
+If a virtual size is much larger than the raw size it is a good indicator that the file is packed.
+Another indicator of a packed binary is if there are a small amount of readable strings when analyzing a binary.
+
+## Portable Executable Format
+
+When programs are compiled on Windows they generate a portable executable (PE).
+PE files are used by executable, DLLs, and object code.
+If you are on a Linux based system you will get an executable and linking format file (ELF), on Mac you have Mach Object file formats (Mach-O).
+
+Each section of the PE file contains information that is required for the Windows OS to correctly load and run the file.
+A few examples of important information that can be pulled from PE headers are:
+
+* Compilation Date
+* Imported Functions
+* Exported Functions
+
+![PE Format](/assets/images/posts/ch1/pe_format.jpg)
+### Linked Libraries
+
+Windows binaries have a few ways of linking libraries. One can statically link, dynamically link, and link at runtime.
+
+**Static linking** takes all the code from the library and copies it into the executable.
+It is the least used as a programs size will quickly balloon.
+In statically linked files it is difficult to tell what functions were generated by the users and what were pulled from external libraries.
+
+**Dynamic linking** is the most common, at least with non-malicious programs.
+With dynamic linking the operating system will search for the necessary libraries when the program is loaded.
+If the libraries cannot be found the program will not run.
+A downside to dynamic linking is that authors must ensure their users have the libraries that the program will use.
+
+**Runtime linking** is very uncommon in normal programs, but is rather common for malicious ones.
+For runtime linking the program will request certain libraries when needed nad not at runtime like dynamic linking.
+It is similar to dynamic linking in the way that the entire libraries code base is not compiled into the program.
+However, with runtime an analyst can not see which function are being imported as easily with dynamic linking.
+There are flags that can show a program is using runtime linking.
+For runtime linking to work the program will need to use *LoadLibrary* and *GetProcAddress*.
+
+### PE File Headers and Sections
+
+The PE format is quite expansive and will not be covered in detail here.
+However the most important sections in a PE File are the following:
+**.text**: Contains the instructions the CPU will execute.
+
+**.rdata**: Read only data, usually contains the imports and exports.
+Will also contain strings and constants.
+
+**.data**: Stores global data accessed by the program.
+
+**.rsrc**: Stores resources needed by the executable.
+
+
+There are a multitude of programs out there to parse PE files and pull out important information.
+[PEView](http://wjradburn.com/software/) is an older tool. It's very small and does not have as much bells as whistles as the other tools.
+[CFF Explorer](https://ntcore.com/?page_id=388) is another PE parser.
+One of its benefits is that it contains a dependency walker for all the imported functions used by the binary.
+The professional PE explorer ([PPEE](https://www.mzrst.com/) or puppy) is also a fantastic tool.
+It has all the benefits the CFF Explorer has but has support for plugins and tries to categorize the strings located in a binary.
+
+
+## Basic Static Analysis Programs
+
+* [PEView](http://wjradburn.com/software/)
+* [CFF Explorer](https://ntcore.com/?page_id=388)
+* [PPEE](https://www.mzrst.com/)
+* [Strings](https://docs.microsoft.com/en-us/sysinternals/downloads/strings)
+* [FLOSS](https://github.com/fireeye/flare-floss)
+* [PEiD](https://www.aldeid.com/wiki/PEiD)

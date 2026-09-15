@@ -1,0 +1,148 @@
+---
+import Search from "@/components/Search.astro";
+import ThemeToggle from "@/components/ThemeToggle.astro";
+import { menuLinks } from "@/site.config";
+import { siteConfig } from "../../site.config";
+---
+
+<header
+	class:list={["group relative mb-28 flex items-center", siteConfig.showLogo && "sm:ps-18"]}
+	id="main-header"
+>
+	<div class="flex sm:flex-col sm:items-start">
+		<a
+			aria-current={Astro.url.pathname === "/" ? "page" : false}
+			class="inline-flex items-center sm:relative sm:inline-block sm:grayscale sm:hover:filter-none"
+			href="/"
+		>
+			{
+				siteConfig.showLogo && (
+					<svg
+						aria-hidden="true"
+						class="text-accent me-3 h-10 w-10 sm:absolute sm:-inset-s-18 sm:me-0 sm:h-16 sm:w-16"
+						fill="none"
+						focusable="false"
+						viewBox="82 82 453 453"
+						xmlns="http://www.w3.org/2000/svg"
+					>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="113.5" x2="156.83" y1="243.5" y2="308.5"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="113.5" x2="156.83" y1="373.5" y2="308.5"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="178.5" x2="200.17" y1="276" y2="308.5"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="178.5" x2="200.17" y1="341" y2="308.5"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="92.42" x2="524.58" y1="308.5" y2="308.5"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="503.5" x2="460.17" y1="373.5" y2="308.5"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="503.5" x2="460.17" y1="243.5" y2="308.5"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="438.5" x2="416.83" y1="341" y2="308.5"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="438.5" x2="416.83" y1="276" y2="308.5"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="124.65" x2="201.26" y1="400.42" y2="415.74"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="216.58" x2="201.26" y1="492.35" y2="415.74"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="193.6" x2="231.9" y1="377.44" y2="385.1"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="239.56" x2="231.9" y1="423.4" y2="385.1"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="155.71" x2="461.29" y1="461.29" y2="155.71"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="492.35" x2="415.74" y1="216.58" y2="201.26"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="400.42" x2="415.74" y1="124.65" y2="201.26"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="423.4" x2="385.1" y1="239.56" y2="231.9"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="377.44" x2="385.1" y1="193.6" y2="231.9"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="308.5" x2="308.5" y1="524.58" y2="92.42"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="351.83" x2="308.5" y1="113.5" y2="156.83"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="265.17" x2="308.5" y1="113.5" y2="156.83"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="341" x2="308.5" y1="178.5" y2="200.17"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="276" x2="308.5" y1="178.5" y2="200.17"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="400.42" x2="415.74" y1="492.35" y2="415.74"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="492.35" x2="415.74" y1="400.42" y2="415.74"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="377.44" x2="385.1" y1="423.4" y2="385.1"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="423.4" x2="385.1" y1="377.44" y2="385.1"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="461.29" x2="155.71" y1="461.29" y2="155.71"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="216.58" x2="201.26" y1="124.65" y2="201.26"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="124.65" x2="201.26" y1="216.58" y2="201.26"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="239.56" x2="231.9" y1="193.6" y2="231.9"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="193.6" x2="231.9" y1="239.56" y2="231.9"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="265.17" x2="308.5" y1="503.5" y2="460.17"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="351.83" x2="308.5" y1="503.5" y2="460.17"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="276" x2="308.5" y1="438.5" y2="416.83"/>
+						<line stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.15" x1="341" x2="308.5" y1="438.5" y2="416.83"/>
+					</svg>
+				)
+			}
+			<span class="text-accent-2 text-xl font-bold sm:text-2xl">{siteConfig.title}</span>
+		</a>
+		<nav
+			aria-label="Main"
+			class="bg-global-bg absolute -inset-x-4 top-12 hidden flex-col divide-y px-2 py-4 group-[.menu-open]:z-50 group-[.menu-open]:flex sm:static sm:z-auto sm:-ms-4 sm:mt-1 sm:flex sm:flex-row sm:divide-x sm:divide-y-0 sm:bg-transparent sm:p-0"
+			id="navigation-menu"
+		>
+			{
+				menuLinks.map((link) => (
+					<a
+						aria-current={Astro.url.pathname === link.path ? "page" : false}
+						class="text-accent px-2 py-4 font-semibold sm:px-4 sm:py-0 sm:underline-offset-2 sm:hover:underline"
+						href={link.path}
+					>
+						{link.title}
+					</a>
+				))
+			}
+		</nav>
+	</div>
+	<Search />
+	<ThemeToggle />
+	<mobile-button>
+		<button
+			aria-expanded="false"
+			aria-haspopup="menu"
+			class="group relative ms-4 h-7 w-7 sm:invisible sm:hidden"
+			id="toggle-navigation-menu"
+			type="button"
+		>
+			<span class="sr-only">Open main menu</span>
+			<svg
+				aria-hidden="true"
+				class="absolute start-1/2 top-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 transition-all group-aria-expanded:scale-0 group-aria-expanded:opacity-0"
+				fill="none"
+				focusable="false"
+				id="line-svg"
+				stroke="currentColor"
+				stroke-width="1.5"
+				viewBox="0 0 24 24"
+				xmlns="http://www.w3.org/2000/svg"
+			>
+				<path d="M3.75 9h16.5m-16.5 6.75h16.5" stroke-linecap="round" stroke-linejoin="round"
+				></path>
+			</svg>
+			<svg
+				aria-hidden="true"
+				class="text-accent absolute start-1/2 top-1/2 h-full w-full -translate-x-1/2 -translate-y-1/2 scale-0 opacity-0 transition-all group-aria-expanded:scale-100 group-aria-expanded:opacity-100"
+				fill="none"
+				focusable="false"
+				id="cross-svg"
+				stroke="currentColor"
+				stroke-width="1.5"
+				viewBox="0 0 24 24"
+				xmlns="http://www.w3.org/2000/svg"
+			>
+				<path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path>
+			</svg>
+		</button>
+	</mobile-button>
+</header>
+
+<script>
+	import { toggleClass } from "@/utils/domElement";
+
+	class MobileNavBtn extends HTMLElement {
+		#menuOpen: boolean = false;
+
+		connectedCallback() {
+			const headerEl = document.getElementById("main-header")!;
+			const mobileButtonEl = this.querySelector<HTMLButtonElement>("button");
+
+			mobileButtonEl?.addEventListener("click", () => {
+				if (headerEl) toggleClass(headerEl, "menu-open");
+				this.#menuOpen = !this.#menuOpen;
+				mobileButtonEl.setAttribute("aria-expanded", this.#menuOpen.toString());
+			});
+		}
+	}
+
+	customElements.define("mobile-button", MobileNavBtn);
+</script>

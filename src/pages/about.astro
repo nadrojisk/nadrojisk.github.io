@@ -1,0 +1,21 @@
+---
+import { getEntry, render } from "astro:content";
+import PageLayout from "@/layouts/Base.astro";
+
+const aboutPage = await getEntry("page", "about");
+if (!aboutPage) throw new Error("About page content not found at content/pages/about.md");
+
+const { Content } = await render(aboutPage);
+
+const meta = {
+	description: aboutPage.data.description,
+	title: aboutPage.data.title,
+};
+---
+
+<PageLayout meta={meta}>
+	<h1 class="title mb-12">About</h1>
+	<div class="prose prose-sm prose-cactus max-w-none">
+		<Content />
+	</div>
+</PageLayout>
