@@ -1,0 +1,18 @@
+---
+import { getCollection } from 'astro:content';
+
+const docs = await getCollection('docs', ({ data }) => !data.draft);
+const posts = docs
+	.filter((doc) => doc.data.date)
+	.sort((a, b) => (b.data.date as Date).getTime() - (a.data.date as Date).getTime());
+---
+
+<ul>
+	{posts.map((post) => (
+		<li>
+			<a href={`/${post.id}/`}>{post.data.title}</a>
+			{' — '}
+			{post.data.date?.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+		</li>
+	))}
+</ul>

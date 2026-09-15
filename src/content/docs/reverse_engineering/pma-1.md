@@ -1,27 +1,25 @@
 ---
 title: "PMA Chapter One - Summary"
-date: 2019-12-21 20:39
-categories:
-  - reverse_engineering
+date: 2019-12-21
+draft: true
 tags:
-  - malware analysis
-  - practical malware analysis
-  - basic static analysis
-  - summary
-toc: true
-header:
-  overlay_image: /assets/images/posts/ch1/pma_1.jpg
-  caption: "Photo credit: [**freepik**](https://www.freepik.com/free-photos-vectors/Background)"
+  - "malware analysis"
+  - "practical malware analysis"
+  - "basic static analysis"
+  - "summary"
 ---
 
 
+![PMA Chapter One](/assets/images/posts/ch1/pma_1.jpg)
+*Photo credit: [**freepik**](https://www.freepik.com/free-photos-vectors/Background)*
 
 In this post we are going to discuss chapter one of [Practical Malware Analysis (PMA)](https://nostarch.com/malware)!
 If you do not already own it I highly recommend it; as it is a fantastic resource for anyone interested in malware analysis, or reverse engineering!
 
-**NOTE**: *PMA is focused on Windows executables.
+:::note
+*PMA is focused on Windows executables.
 Due to that many of the concepts are on Window API concepts, however most of the high level ideas can be applied for any operating system.*
-{: .notice}
+:::
 
 Chapter one of PMA is focused on **basic static analysis** of binary files.
 For binary analysis there are two forms of analysis **static** and **dynamic**; each have a basic and advanced form.
@@ -42,15 +40,15 @@ Hashing is a common method to uniquely identify files and in particular malware.
 A good hashing algorithm is a 1 -> 1 function, that is, when data is sent into a hashing algorithm the output is unique to only that input data.
 For example, if I were send a file into SHA1 its output should always be the same for that file, and no other file should be able to reproduce the output of my file, unless they are the same files.
 
-{% highlight bash %}
+```bash
 $ echo "hello" | shasum
 f572d396fae9206628714fb2ce00f72e94f2258f  -
-{% endhighlight %}
+```
 
-{% highlight bash %}
+```bash
 $ echo "Hello" | shasum
 1d229271928d3f9e2bb0375bd6ce5db6c6d348d9  -
-{% endhighlight %}
+```
 
 ## Strings
 
@@ -61,8 +59,9 @@ If you were to find verbs like "sleep", "execute", "download" you may assume tha
 The [strings](https://docs.microsoft.com/en-us/sysinternals/downloads/strings) utility can be used to find both ASCII and UNICODE strings found inside a program.
 However, it is not installed by default on Windows.
 
-**NOTE**: *By default strings, on Windows, ignores "strings" less than 3 characters.*
-{: .notice}
+:::note
+*By default strings, on Windows, ignores "strings" less than 3 characters.*
+:::
 
 An alternative tool to strings is [FLOSS](https://github.com/fireeye/flare-floss).
 FLOSS is made by FireEye Labs Advanced Reverse Engineering or FLARE.
@@ -106,8 +105,7 @@ A few examples of important information that can be pulled from PE headers are:
 * Imported Functions
 * Exported Functions
 
-![PE Format](/assets/images/posts/ch1/pe_format.jpg){: .align-center}
-
+![PE Format](/assets/images/posts/ch1/pe_format.jpg)
 ### Linked Libraries
 
 Windows binaries have a few ways of linking libraries. One can statically link, dynamically link, and link at runtime.

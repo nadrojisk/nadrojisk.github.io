@@ -1,16 +1,12 @@
 ---
 title: "UMass CTF 2020: Reverse Engineering Writeups"
+description: "Writeup for UMass CTF 2020's Reversing Challenges"
 date: 2020-10-12
-category: ctf
 tags:
- - reverse engineering
- - umass20
-# toc: true
-permalink: /ctf/umass/rev
-sidebar:
-    nav: "ctfs"
-excerpt: Writeup for UMass CTF 2020's Reversing Challenges
-...
+  - "reverse engineering"
+  - "umass20"
+---
+
 
 # Introduction
 

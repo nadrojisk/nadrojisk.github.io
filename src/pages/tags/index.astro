@@ -1,0 +1,27 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { getCollection } from 'astro:content';
+
+const docs = await getCollection('docs', ({ data }) => !data.draft);
+const tagCounts = new Map<string, number>();
+for (const doc of docs) {
+	for (const tag of doc.data.tags ?? []) {
+		tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+	}
+}
+const tags = [...tagCounts.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+
+function slugifyTag(tag: string) {
+	return tag.toLowerCase().replace(/\s+/g, '-');
+}
+---
+
+<StarlightPage frontmatter={{ title: 'Tags' }}>
+	<ul>
+		{tags.map(([tag, count]) => (
+			<li>
+				<a href={`/tags/${slugifyTag(tag)}/`}>{tag}</a> ({count})
+			</li>
+		))}
+	</ul>
+</StarlightPage>
