@@ -1,14 +1,11 @@
 ---
 title: "UMass CTF 2020: PWN Engineering Writeups"
 date: 2020-10-13
-category: ctf
 tags:
- - pwn
- - umass20
-permalink: /ctf/umass/pwn
-sidebar:
-    nav: "ctfs"
-...
+  - "pwn"
+  - "umass20"
+---
+
 
 # Introduction
 

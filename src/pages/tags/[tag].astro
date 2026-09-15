@@ -1,0 +1,32 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+	const docs = await getCollection('docs', ({ data }) => !data.draft);
+	const tagMap = new Map<string, { tag: string; docs: typeof docs }>();
+	for (const doc of docs) {
+		for (const tag of doc.data.tags ?? []) {
+			const slug = tag.toLowerCase().replace(/\s+/g, '-');
+			if (!tagMap.has(slug)) tagMap.set(slug, { tag, docs: [] });
+			tagMap.get(slug)!.docs.push(doc);
+		}
+	}
+	return [...tagMap.entries()].map(([slug, { tag, docs }]) => ({
+		params: { tag: slug },
+		props: { tag, docs },
+	}));
+}
+
+const { tag, docs } = Astro.props;
+---
+
+<StarlightPage frontmatter={{ title: `Tag: ${tag}` }}>
+	<ul>
+		{docs.map((doc) => (
+			<li>
+				<a href={`/${doc.id}/`}>{doc.data.title}</a>
+			</li>
+		))}
+	</ul>
+</StarlightPage>

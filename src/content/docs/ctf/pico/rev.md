@@ -1,14 +1,11 @@
 ---
 title: "picoCTF 2019: Reverse Engineering Writeups"
-date: 2019-12-24 14:31
-category: ctf
+date: 2019-12-24
 tags:
- - reverse engineering
- - pico19
-sidebar:
-    nav: "ctfs"
-permalink: /ctf/pico/rev
+  - "reverse engineering"
+  - "pico19"
 ---
+
 
 In this post, I will be going over the challenges that I solved during picoCTF 2019.
 picoCTF is a capture the flag competition aimed at Middle School and High School students; it is created by students at Carnegie Mellon.
@@ -172,9 +169,8 @@ for (i=0; i<8; i++) {
 
 We see for the first 8 characters there is no character shuffling.
 
-|--------------+-------------+----------------|
 | Input | Output | Character |
-|:------------:+:-----------:+:--------------:|
+|:------------:|:-----------:|:--------------:|
 | 0 | 0 | j |
 | 1 | 1 | U |
 | 2 | 2 | 5 |
@@ -183,7 +179,6 @@ We see for the first 8 characters there is no character shuffling.
 | 5 | 5 | a |
 | 6 | 6 | _ |
 | 7 | 7 | s |
-|--------------+-------------+----------------|
 
 ```java
 for (; i<16; i++) {
@@ -195,9 +190,8 @@ However, characters 8 - 15 in the output array do NOT map to characters 8 - 15 i
 We see that they do map to `23 - i`; essentially writing the characters in reverse.
 With this, we can create a table for characters 8 - 15.
 
-|--------------+-------------|----------------|
 | Input | Output | Character |
-|:------------:+:-----------:|:--------------:|
+|:------------:|:-----------:|:--------------:|
 | 8 | 15 | 1 |
 | 9 | 14 | m |
 | 10 | 13 | p |
@@ -206,7 +200,6 @@ With this, we can create a table for characters 8 - 15.
 | 13 | 10 | _ |
 | 14 | 9 | a |
 | 15 | 8 | n |
-|--------------+-------------+----------------|
 
 For the next chunk of characters we do this again but skip every other character.
 
@@ -216,9 +209,8 @@ for (; i<32; i+=2) {
 }
 ```
 
-|--------------+-------------|----------------|
 | Input | Output | Character |
-|:------------:+:-----------:|:--------------:|
+|:------------:|:-----------:|:--------------:|
 | 16 | 30 | 4 |
 | 18 | 28 | r |
 | 20 | 26 | m |
@@ -227,7 +219,6 @@ for (; i<32; i+=2) {
 | 26 | 20 | e |
 | 28 | 18 | a |
 | 30 | 16 | 1 |
-|--------------+-------------+----------------|
 
 Now for the last transformation.
 For this we use the characters we skipped over in the last transformation.
@@ -238,9 +229,8 @@ for (i=31; i>=17; i-=2) {
 }
 ```
 
-|--------------+-------------|----------------|
 | Input | Output | Character |
-|:------------:+:-----------:|:--------------:|
+|:------------:|:-----------:|:--------------:|
 | 31 | 31 | 8 |
 | 29 | 29 | f |
 | 27 | 27 | 9 |
@@ -249,7 +239,6 @@ for (i=31; i>=17; i-=2) {
 | 21 | 21 | _ |
 | 19 | 19 | 4 |
 | 17 | 17 | g |
-|--------------+-------------+----------------|
 
 Therefore, putting all the mappings together we get out input strings should be `picoCTF{jU5t_a_s1mpl3_ang4r4m_4_u_e9af18}`.
 
@@ -640,14 +629,14 @@ We check the value pointed to by EBP+0x8 against 0x421.
 Since this program took one parameter, 0x1b4, we know that EBP+0x8 is the address pointing to the first passed parameter. With EBP+0x4 being the program's runtime path.
 Since `0x1B4 < 0x421` we will not take the jump condition as it is `JG` or [jump greater](https://www.aldeid.com/wiki/X86-assembly/Instructions/jg), therefore, we will move onto line 12.
 
-```nasm
+```asm
 <+3>: cmp DWORD PTR [ebp+0x8],0x421
 <+10>: jg 0x512 <asm1+37>
 ```
 
 In this check, we compare the passed parameter against `0x1B4`.
 Since `0x1B4 == 0x1B4` we will not take this jump as it is `jne` or [jump not equal(https://www.aldeid.com/wiki/X86-assembly/Instructions/jg); on to the next line.
-```nasm
+```asm
 <+12>: cmp DWORD PTR [ebp+0x8],0x1b4
 <+19>: jne 0x50a <asm1+29>
 ```
@@ -655,7 +644,7 @@ Since `0x1B4 == 0x1B4` we will not take this jump as it is `jne` or [jump not eq
 Here we move `0x421` into `EAX`.
 Following this, we perform `0x1B4 + 0x13`; after this operation, `EAX` will contain `0x1C7` and jump to line 60.
 
-```nasm
+```asm
 <+21>: mov eax,DWORD PTR [ebp+0x8]
 <+24>: add eax,0x13
 <+27>: jmp 0x529 <asm1+60>
@@ -665,7 +654,7 @@ We now clean up our stack and exit this function.
 Since EAX is treated as the return value we return `0x1C7`.
 Therefore, our flag is `0x1C7`.
 
-```nasm
+```asm
 <+60>: pop ebp
 <+61>: ret
 ```
@@ -692,7 +681,7 @@ The program starts with the stack looking like so:
 +---------+
 ```
 
-```nasm
+```asm
 <+0>: push ebp
 <+1>: mov ebp,esp
 <+3>: sub esp,0x10
@@ -724,7 +713,7 @@ This program starts by loading the second passed parameter, `0x24`, into `EAX`.
 Following this, we load the contents of `EAX` into temporary storage at `EBP-0x4`, essentially `EBP-0x4` points to the second parameter.
 We do the same for the first parameter, `0x6`, but have it stored at `EBP-0x8` and then jump to line 31.
 
-```nasm
+```asm
 <+6>: mov eax,DWORD PTR [ebp+0xc] ; eax = 0x24
 <+9>: mov DWORD PTR [ebp-0x4],eax ; var1 = 0x24
 <+12>: mov eax,DWORD PTR [ebp+0x8] ; eax = 0x6
@@ -757,7 +746,7 @@ After this code block our stack will look like this:
 Here we check and see if the value at `EBP-0x8` less than or equal to `0x3C75`.
 Currently `EBP-0x8` contains `0x6` therefore we will make the jump to line 20.
 
-```nasm
+```asm
 <+31>: cmp DWORD PTR [ebp-0x8],0x3c75
 <+38>: jle 0x501 <asm2+20>
 ```
@@ -767,7 +756,7 @@ Then we do the same compare and conditional jump.
 For the jump to fail `EBP-0x8` needs to be greater than `0x501`.
 Since we add `0xF9` each time to `EBP-0x8` it will take 63 iterations to complete.
 
-```nasm
+```asm
 <+20>: add DWORD PTR [ebp-0x4],0x1
 <+24>: add DWORD PTR [ebp-0x8],0xf9
 <+31>: cmp DWORD PTR [ebp-0x8],0x3c75
@@ -799,7 +788,7 @@ After not jumping we load `EAX` with EBP-0x4.
 Since we ran the loop 63 times EBP-0x4 will equal `0x63` (`0x24 + 63`).
 We then clean up the stack and leave the function.
 
-```nasm
+```asm
 <+40>: mov eax,DWORD PTR [ebp-0x4]
 <+43>: leave
 <+44>: ret
@@ -813,7 +802,7 @@ What does asm3(0xfe8cf7a4,0xf55018af,0xb8c70926) return? Submit the flag as a he
 
 ## Solution
 
-```nasm
+```asm
 <+0>: push ebp
 <+1>: mov ebp,esp
 <+3>: xor eax,eax
@@ -836,7 +825,7 @@ After we setup the stack with the first two lines and clear `EAX` our stack will
 ```
 
 
-```nasm
+```asm
 <+5>: mov ah,BYTE PTR [ebp+0x9]
 <+8>: shl ax,0x10
 ```
@@ -845,30 +834,28 @@ We then load EBP+0x9 into `AH` which will be `0xF7`.
 Following this, we perform a shift on `AX` which contains `0xF700`.
 Performing a left shift of 16 will completely shift everything off of `AX`, therefore, `AX` after this operation will contain 0.
 
-|--------------+-------------|
 | Index | EBP+Index |
-|:------------:+:-----------:|
+|:------------:|:-----------:|
 | 0x8 | 0xA4 |
 | 0x9 | 0xF7 |
 | 0xA | 0x8C |
 | 0xB | 0xFE |
 | 0xC | 0xAF |
-|--------------+-------------|
 
-```nasm
+```asm
 <+12>: sub al,BYTE PTR [ebp+0xd] ; AL = 0x0 - 0x18 = 0xE8
 ```
 
 After the prior shift left we will subtract AL by the contents of `EBP+0xD`; which is `0x18`.
 Performing this operation will set `AL` with `0xE8`, which is a negative 0x18 in two's complement.
 
-```nasm
+```asm
 <+15>: add ah,BYTE PTR [ebp+0xe] AH = 0x0 + 0x50 = 0x50
 ```
 
 Now we add `EBP+0xE` to AH; which is `0x50`. Since AH is still 0x0 from last time the resulting operation will have `AH` be `0x50`.
 
-```nasm
+```asm
 <+18>: xor ax,WORD PTR [ebp+0x12]
 ```
 
@@ -886,7 +873,7 @@ What will asm4("picoCTF_c1373") return? Submit the flag as a hexadecimal value (
 
 ## Solution
 
-```nasm
+```asm
 <+0>: push ebp
 <+1>: mov ebp,esp
 <+3>: push ebx
@@ -912,7 +899,7 @@ After the stack prologue our stack will look like this:
 +----------------+
 ```
 
-```nasm
+```asm
 <+7>: mov DWORD PTR [ebp-0x10],0x247 ; var2 = 0x247
 <+14>: mov DWORD PTR [ebp-0xc],0x0 ; var1 = 0
 <+21>: jmp 0x518 <asm4+27>
@@ -941,7 +928,7 @@ After these lines the stack will look like this:
 
 1 and 1 = 1, ZF = 0
 
-```nasm
+```asm
 <+23>: add DWORD PTR [ebp-0xc],0x1 ; var1 += 1
 <+27>: mov edx,DWORD PTR [ebp-0xc] ; edx = var1
 <+30>: mov eax,DWORD PTR [ebp+0x8] ; eax = input
@@ -959,7 +946,7 @@ If the lower 8 bits are 0 then we will leave the loop otherwise we increment the
 The only way for those bits to be zero is if we reach the null character in the character array; which denotes the end of the array.
 What this code block is doing is just getting the length of the input array; which is 13 characters long.
 
-```nasm
+```asm
 <+42>: mov DWORD PTR [ebp-0x8],0x1 ; var3 = 0
 <+49>: jmp 0x587 <asm4+138>
 ```
@@ -985,7 +972,7 @@ So after this, our stack will look like this.
 +----------------+
 ```
 
-```nasm
+```asm
 <+138>: mov eax,DWORD PTR [ebp-0xc] ; eax = var1
 <+141>: sub eax,0x1 ; eax -= 1
 <+144>: cmp DWORD PTR [ebp-0x8],eax if var3 < eax
@@ -1007,7 +994,7 @@ Since during this first loop EAX contains 0xC and var3 contains 1 it is less so 
 Here we load EDX with var3, currently 1, and EAX with arg1, the character array.
 Then we get the character located at the index of var3. So for this first iteration, we grab the character at index 1, so `i`, and load it into EDX.
 
-```nasm
+```asm
 <+65>: mov eax,DWORD PTR [ebp-0x8] ; eax = var3
 <+68>: lea ecx,[eax-0x1] ; ecx = eax - 1
 <+71>: mov eax,DWORD PTR [ebp+0x8] ; eax = arg1
@@ -1028,7 +1015,7 @@ So we subtract `p` with `i` and load it into EDX.
 In other words we calculate `arg1[i] - arg1[i-1]`.
 For this first iteration EDX contains 0xFFF9.
 
-```nasm
+```asm
 <+88>: mov eax,DWORD PTR [ebp-0x10] ; eax = var1
 <+91>: lea ebx,[edx+eax*1] ; ebx = edx + eax * 1
 <+94>: mov eax,DWORD PTR [ebp-0x8] ; eax = var2
@@ -1044,7 +1031,7 @@ Then we load EAX with var3, which is currently 1.
 Then we load EDX with EAX + 1, which during this first iteration is 0x1 + 1 = 0x2.
 Then we get the character at index EAX + 1 or index 2 for the first loop; so EDX will be `c`.
 
-```nasm
+```asm
 <+111>: mov ecx,DWORD PTR [ebp-0x8] ; ecx = var2
 <+114>: mov eax,DWORD PTR [ebp+0x8] ; eax = arg1
 <+117>: add eax,ecx ; eax = eax[ecx]
@@ -1060,7 +1047,7 @@ Then we once again subtract two characters from each other.
 This time we calculate `arg1[i+1] - arg1[i]` and load it into EDX.
 Then we add the result to `EBX` which contains 0x240 from earlier and set that into EAX.
 
-```nasm
+```asm
 <+131>: mov DWORD PTR [ebp-0x10],eax
 <+134>: add DWORD PTR [ebp-0x8],0x1
 <+138>: mov eax,DWORD PTR [ebp-0xc]
