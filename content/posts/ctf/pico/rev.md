@@ -1,0 +1,1237 @@
+---
+title: 'picoCTF 2019: Reverse Engineering Writeups'
+description: 'picoCTF 2019: Reverse Engineering Writeups'
+publishDate: 2019-12-24
+tags:
+- reverse engineering
+- pico19
+draft: false
+---
+
+
+In this post, I will be going over the challenges that I solved during picoCTF 2019.
+picoCTF is a capture the flag competition aimed at Middle School and High School students; it is created by students at Carnegie Mellon.
+It may be aimed for younger students but as I am still learning reverse engineering it was perfect for me.
+I participated with Auburn's Ethical Hacking Club during the competition.
+
+# vault-door-training
+
+## Problem
+
+Your mission is to enter Dr. Evil's laboratory and retrieve the blueprints for his Doomsday Project. The laboratory is protected by a series of locked vault doors. Each door is controlled by a computer and requires a password to open. Unfortunately, our undercover agents have not been able to obtain the secret passwords for the vault doors, but one of our junior agents obtained the source code for each vault's computer! You will need to read the source code for each level to figure out what the password is for that vault door. As a warmup, we have created a replica vault in our training facility. The source code for the training vault is here: [VaultDoorTraining.java](https://raw.githubusercontent.com/nadrojisk/CTF_Writeups/master/2019-PicoCTF/rev/solved/vault-door-training/VaultDoorTraining.java)
+
+Hint: The password is revealed in the program's source code.
+
+## Solution
+
+This challenge is meant to get your feet wet with reverse engineering.
+If you know Java the challenge is quite trivial.
+
+```java
+String userInput = scanner.next();
+String input = userInput.substring("picoCTF{".length(),userInput.length()-1);
+```
+
+We see it grabs the user's input and parses out `picoCTF{` and the last character; which should be `}` if we are following the flag format.
+
+```java
+if (vaultDoor.checkPassword(input)) {
+ System.out.println("Access granted.");
+} else {
+ System.out.println("Access denied!");
+}
+```
+
+After that, it passes our input to a `checkPassword` function.
+
+```java
+public boolean checkPassword(String password) {
+    return password.equals("w4rm1ng_Up_w1tH_jAv4_ca5ae7fcc95");
+}
+```
+
+Looking into `checkPassword` we see it compares the parameter against `w4rm1ng_Up_w1tH_jAv4_ca5ae7fcc95`
+Therefore, if we send `picoCTF{w4rm1ng_Up_w1tH_jAv4_ca5ae7fcc95}` to the program we will be awarded the good boy message `Access granted`.
+
+flag: `picoCTF{w4rm1ng_Up_w1tH_jAv4_ca5ae7fcc95}`
+
+# vault-door-1
+
+## Problem
+
+This vault uses some complicated arrays! I hope you can make sense of it, special agent. The source code for this vault is here: [VaultDoor1.java](https://raw.githubusercontent.com/nadrojisk/CTF_Writeups/master/2019-PicoCTF/rev/solved/vault-door-1/VaultDoor1.java)
+
+Hint: Look up the charAt() method online.
+
+## Solution
+
+Looking at the source code for this challenge it is very similar to the training challenge.
+However `checkPassword` is different.
+
+
+```java
+public boolean checkPassword(String password) {
+ return password.length() == 32 &&
+ password.charAt(0) == 'd' &&
+ password.charAt(29) == '3' &&
+ password.charAt(4) == 'r' &&
+ password.charAt(2) == '5' &&
+ password.charAt(23) == 'r' &&
+ password.charAt(3) == 'c' &&
+ password.charAt(17) == '4' &&
+ password.charAt(1) == '3' &&
+ password.charAt(7) == 'b' &&
+ password.charAt(10) == '_' &&
+ password.charAt(5) == '4' &&
+ password.charAt(9) == '3' &&
+ password.charAt(11) == 't' &&
+ password.charAt(15) == 'c' &&
+ password.charAt(8) == 'l' &&
+ password.charAt(12) == 'H' &&
+ password.charAt(20) == 'c' &&
+ password.charAt(14) == '_' &&
+ password.charAt(6) == 'm' &&
+ password.charAt(24) == '5' &&
+ password.charAt(18) == 'r' &&
+ password.charAt(13) == '3' &&
+ password.charAt(19) == '4' &&
+ password.charAt(21) == 'T' &&
+ password.charAt(16) == 'H' &&
+ password.charAt(27) == 'd' &&
+ password.charAt(30) == '8' &&
+ password.charAt(25) == '_' &&
+ password.charAt(22) == '3' &&
+ password.charAt(28) == '0' &&
+ password.charAt(26) == '9' &&
+ password.charAt(31) == 'f';
+}
+```
+
+`checkPassword` still compares our input against a hardcoded string, however, this time the original plaintext version of the string has been obfuscated.
+[`charAt(int index)`](https://docs.oracle.com/javase/7/docs/api/java/lang/String.html#charAt(int)) takes an integer that represents an index in the original string.
+
+For example if you had `hello` and called `hello`.charAt(1) you would get `e` in return.
+
+There are multiple ways to solve this and my solution is most definitely not the prettiest.
+If we copy all the lines that contain `password.charAt...` into a text file called `parsed_output` we can run this bash script to get the flag.
+
+```bash
+$ sort -V parsed_output | cut -c 25 | tr -d "\n"
+d35cr4mbl3_tH3_cH4r4cT3r5_9d038f%
+```
+
+In this bash script we first sort the file using the version format.
+This works since in our input text we have strings that start the same and have a differing index value that can be treated as a "version-number".
+After that, we cut all the text out except the characters in the flag, and then we replace all the newline characters with a blank character.
+
+flag: `picoCTF{d35cr4mbl3_tH3_cH4r4cT3r5_9d038f}`
+
+# vault-door-3
+
+## Problem
+
+This vault uses for-loops and byte arrays. The source code for this vault is here: [VaultDoor3.java](https://raw.githubusercontent.com/nadrojisk/CTF_Writeups/master/2019-PicoCTF/rev/solved/vault-door-3/VaultDoor3.java)
+
+Hint: Make a table that contains each value of the loop variables and the corresponding buffer index that it writes to.
+
+## Solution
+
+```java
+public boolean checkPassword(String password) {
+ if (password.length() != 32) {
+ return false;
+ }
+ char[] buffer = new char[32];
+ int i;
+ for (i=0; i<8; i++) {
+ buffer[i] = password.charAt(i);
+ }
+ for (; i<16; i++) {
+ buffer[i] = password.charAt(23-i);
+ }
+ for (; i<32; i+=2) {
+ buffer[i] = password.charAt(46-i);
+ }
+ for (i=31; i>=17; i-=2) {
+ buffer[i] = password.charAt(i);
+ }
+ String s = new String(buffer);
+ return s.equals("jU5t_a_sna_3lpm11ga4e_u_4_m9rf48");
+}
+```
+
+As we have seen before the main program is the same and the difference is in the `checkPassword` function.
+This time the function rearranges our input which needs to end up equalling `jU5t_a_sna_3lpm11ga4e_u_4_m9rf48`.
+
+```java
+for (i=0; i<8; i++) {
+ buffer[i] = password.charAt(i);
+}
+```
+
+We see for the first 8 characters there is no character shuffling.
+
+| Input | Output | Character |
+|:------------:|:-----------:|:--------------:|
+| 0 | 0 | j |
+| 1 | 1 | U |
+| 2 | 2 | 5 |
+| 3 | 3 | t |
+| 4 | 4 | _ |
+| 5 | 5 | a |
+| 6 | 6 | _ |
+| 7 | 7 | s |
+
+```java
+for (; i<16; i++) {
+ buffer[i] = password.charAt(23-i);
+}
+```
+
+However, characters 8 - 15 in the output array do NOT map to characters 8 - 15 in our original input array.
+We see that they do map to `23 - i`; essentially writing the characters in reverse.
+With this, we can create a table for characters 8 - 15.
+
+| Input | Output | Character |
+|:------------:|:-----------:|:--------------:|
+| 8 | 15 | 1 |
+| 9 | 14 | m |
+| 10 | 13 | p |
+| 11 | 12 | l |
+| 12 | 11 | 3 |
+| 13 | 10 | _ |
+| 14 | 9 | a |
+| 15 | 8 | n |
+
+For the next chunk of characters we do this again but skip every other character.
+
+```java
+for (; i<32; i+=2) {
+ buffer[i] = password.charAt(46-i);
+}
+```
+
+| Input | Output | Character |
+|:------------:|:-----------:|:--------------:|
+| 16 | 30 | 4 |
+| 18 | 28 | r |
+| 20 | 26 | m |
+| 22 | 24 | 4 |
+| 24 | 22 | u |
+| 26 | 20 | e |
+| 28 | 18 | a |
+| 30 | 16 | 1 |
+
+Now for the last transformation.
+For this we use the characters we skipped over in the last transformation.
+
+```java
+for (i=31; i>=17; i-=2) {
+ buffer[i] = password.charAt(i);
+}
+```
+
+| Input | Output | Character |
+|:------------:|:-----------:|:--------------:|
+| 31 | 31 | 8 |
+| 29 | 29 | f |
+| 27 | 27 | 9 |
+| 25 | 25 | _ |
+| 23 | 23 | _ |
+| 21 | 21 | _ |
+| 19 | 19 | 4 |
+| 17 | 17 | g |
+
+Therefore, putting all the mappings together we get out input strings should be `picoCTF{jU5t_a_s1mpl3_ang4r4m_4_u_e9af18}`.
+
+flag: `picoCTF{jU5t_a_s1mpl3_an4gr4m_4_u_e9af18}`
+
+# vault-door-4
+
+## Problem
+
+This vault uses ASCII encoding for the password. The source code for this vault is here: [VaultDoor4.java](https://raw.githubusercontent.com/nadrojisk/CTF_Writeups/master/2019-PicoCTF/rev/solved/vault-door-4/VaultDoor4.java)
+
+Hint: Use a search engine to find an "ASCII table".
+
+Hint: You will also need to know the difference between octal, decimal, and hexadecimal numbers.
+
+## Solution
+
+First, let's look at the `checkPassword` function.
+
+```java
+public boolean checkPassword(String password) {
+    byte[] passBytes = password.getBytes();
+    byte[] myBytes = {
+        106 , 85 , 53 , 116 , 95 , 52 , 95 , 98 ,
+        0x55, 0x6e, 0x43, 0x68, 0x5f, 0x30, 0x66, 0x5f,
+        0142, 0131, 0164, 063 , 0163, 0137, 070 , 060 ,
+        'f' , '8' , 'e' , '1' , 'e' , '0' , '4' , '7' ,
+    };
+    for (int i=0; i<32; i++) {
+        if (passBytes[i] != myBytes[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+```
+
+We can see that there's no array shuffling this time, thankfully.
+This time it uses different ASCII representations to obscure the flag; with each line being a different representation.
+The first line uses decimal values, the second line hexadecimal, the third octal, and the last plain ASCII.
+
+Using Python 2 we can quickly convert this array.
+Python 3's octal format is not 0NUMBER like Java, but Python 2's is.
+Python 3 uses `0oNUMBER` like `0o142`.
+
+```python
+enc = [
+ 106 , 85 , 53 , 116 , 95 , 52 , 95 , 98 ,
+ 0x55, 0x6e, 0x43, 0x68, 0x5f, 0x30, 0x66, 0x5f,
+ 0142, 0131, 0164, 063 , 0163, 0137, 070 , 060]
+plain = ['f' , '8' , 'e' , '1' , 'e' , '0' , '4' , '7']
+print ''.join(map(chr, enc) + plain)
+```
+
+Running this in Python 2 we can get our flag.
+
+flag: `picoCTF{jU5t_4_bUnCh_0f_bYt3s_80f8e1e047}`.
+
+# vault-door-5
+
+## Problem
+
+In the last challenge, you mastered octal (base 8), decimal (base 10), and hexadecimal (base 16) numbers, but this vault door uses a different change of base as well as URL encoding! The source code for this vault is here: [VaultDoor5.java](https://raw.githubusercontent.com/nadrojisk/CTF_Writeups/master/2019-PicoCTF/rev/solved/vault-door-5/VaultDoor5.java)
+
+Hint: You may find an encoder/decoder tool helpful, such as https://encoding.tools/
+
+Hint: Read the wikipedia articles on URL encoding and base 64 encoding to understand how they work and what the results look like.
+
+## Solution
+
+Looking at the source code this challenge is quite trivial.
+
+
+```java
+public boolean checkPassword(String password) {
+ String urlEncoded = urlEncode(password.getBytes());
+ String base64Encoded = base64Encode(urlEncoded.getBytes());
+ String expected = "JTYzJTMwJTZlJTc2JTMzJTcyJTc0JTMxJTZlJTY3JTVm"\
+ + "JTY2JTcyJTMwJTZkJTVmJTYyJTYxJTM1JTY1JTVmJTM2"\
+ + "JTM0JTVmJTY0JTYxJTM4JTM4JTMyJTY0JTMwJTMx";
+ return base64Encoded.equals(expected);
+}
+```
+
+`urlEncode` parses a string and converts it to the [URL Encoded](https://www.w3schools.com/tags/ref_urlencode.asp) equivalent.
+After that, it simply uses a base 64 encoding scheme on the URL encoded output.
+
+Now that we know how this challenge obscures the input it is relatively easy to solve.
+We can use a Python script to solve this.
+
+```python
+import base64
+print(''.join(map(chr, [int(x, 16) for x in base64.b64decode(expected).decode().strip('%').split('%')])))
+```
+
+In this script, we first decode the base 64 encryption.
+Following that we strip out the leading and ending percent signs, if we do not it will mess up the latter steps.
+After this, we will treat the percent sign as a delimiter and split the string at each instance of one.
+At this point, we now have a list of hexadecimal characters that need to be converted to their ASCII equivalents.
+We first convert the string representation of the hexadecimal numbers to integers and pass them to `chr` using `map`.
+
+Running the Python script we get this in return; `c0nv3rt1ng_fr0m_ba5e_64_da882d01`.
+
+flag: `picoCTF{c0nv3rt1ng_fr0m_ba5e_64_da882d01}`
+
+
+# vault-door-6
+
+## Problem
+
+This vault uses an XOR encryption scheme. The source code for this vault is here: [VaultDoor6.java](https://raw.githubusercontent.com/nadrojisk/CTF_Writeups/master/2019-PicoCTF/rev/solved/vault-door-6/VaultDoor6.java)
+
+Hint: If X ^ Y = Z, then Z ^ Y = X. Write a program that decrypts the flag based on this fact.
+
+## Solution
+
+Looking at the `checkPassword` function we see this challenge obscures the flag with a simple XOR encryption.
+
+```java
+public boolean checkPassword(String password) {
+ if (password.length() != 32) {
+ return false;
+ }
+ byte[] passBytes = password.getBytes();
+ byte[] myBytes = {
+ 0x3b, 0x65, 0x21, 0xa , 0x38, 0x0 , 0x36, 0x1d,
+ 0xa , 0x3d, 0x61, 0x27, 0x11, 0x66, 0x27, 0xa ,
+ 0x21, 0x1d, 0x61, 0x3b, 0xa , 0x2d, 0x65, 0x27,
+ 0xa , 0x63, 0x65, 0x64, 0x67, 0x37, 0x6d, 0x62,
+ };
+ for (int i=0; i<32; i++) {
+ if (((passBytes[i] ^ 0x55) - myBytes[i]) != 0) {
+ return false;
+ }
+ }
+ return true;
+}
+```
+
+The key used in the XOR encryption is `0x55`.
+For XOR encryptions the key that is used to encrypt is also used to decrypt messages, and the algorithm used to decrypt is the same used to encrypt.
+
+To solve this all we need to do is run a quick Python script.
+
+```python
+enc = [
+ 0x3b, 0x65, 0x21, 0xa , 0x38, 0x0 , 0x36, 0x1d,
+ 0xa , 0x3d, 0x61, 0x27, 0x11, 0x66, 0x27, 0xa ,
+ 0x21, 0x1d, 0x61, 0x3b, 0xa , 0x2d, 0x65, 0x27,
+ 0xa , 0x63, 0x65, 0x64, 0x67, 0x37, 0x6d, 0x62,]
+print(''.join(map(chr, [ x ^ 0x55 for x in enc])))
+```
+
+We use a simple list comprehension to quickly XOR all the bytes, following that we print out the ASCII representation.
+We get the following output: `n0t_mUcH_h4rD3r_tH4n_x0r_6012b87`.
+
+flag: `picoCTF{n0t_mUcH_h4rD3r_tH4n_x0r_6012b87}`
+
+# vault-door-7
+
+## Problem
+
+This vault uses bit shifts to convert a password string into an array of integers. Hurry, agent, we are running out of time to stop Dr. Evil's nefarious plans! The source code for this vault is here: [VaultDoor7.java](https://raw.githubusercontent.com/nadrojisk/CTF_Writeups/master/2019-PicoCTF/rev/solved/vault-door-7/VaultDoor7.java)
+
+Hint: Use a decimal/hexadecimal converter such as this one: [https://www.mathsisfun.com/binary-decimal-hexadecimal-converter.html](https://www.mathsisfun.com/binary-decimal-hexadecimal-converter.html)
+
+Hint: You will also need to consult an ASCII table such as this one: [https://www.asciitable.com/](https://www.asciitable.com/)
+
+## Solution
+
+Looking at the source for this challenge we see it is a little different than the other ones we have faced.
+This time we need to understand [bit shifting](https://en.wikipedia.org/wiki/Bitwise_operation#Bit_shifts).
+
+```java
+public boolean checkPassword(String password) {
+ if (password.length() != 32) {
+ return false;
+ }
+ int[] x = passwordToIntArray(password);
+ return x[0] == 1096770097
+ && x[1] == 1952395366
+ && x[2] == 1600270708
+ && x[3] == 1601398833
+ && x[4] == 1716808014
+ && x[5] == 1734304870
+ && x[6] == 895891557
+ && x[7] == 1681142832;
+}
+```
+
+We see within the normal `checkPassword` function we pass our input `password` to a `passwordToIntArray` function.
+The values returned by this function are checked against hardcoded values.
+The first thing we should do is looking into how the output array is generated by `passwordToIntArray`.
+
+```java
+public int[] passwordToIntArray(String hex) {
+ int[] x = new int[8];
+ byte[] hexBytes = hex.getBytes();
+ for (int i=0; i<8; i++) {
+ x[i] = hexBytes[i*4] << 24
+ | hexBytes[i*4+1] << 16
+ | hexBytes[i*4+2] << 8
+ | hexBytes[i*4+3];
+ }
+ return x;
+}
+```
+
+Inside `passwordToIntArray` we see it takes a string which it refers to as `hex`.
+It generates an empty int array of size 8 and then uses string's [`getBytes`](https://docs.oracle.com/javase/7/docs/api/java/lang/String.html#getBytes()) function on hex.
+This will encode the string as a sequence of bytes and return the output as an array.
+Following the conversion of our input array, we enter a for loop that runs 8 times, with four characters of our input string being transformed each run.
+
+The `<<` refers to a bit shift, a signed bit shift to the left, in Java.
+So if we had `0001` and performed << 2 we would have `0100` as an output.
+
+Therefore, if we perform a 24-bit shift to the left on a hexadecimal representation of an ASCII character its original 8 bits will be shifted 24 places to the left.
+In Java, an integer, which is the type these bits are being transformed into, is 4 bytes or 32 bits.
+If our first character was an `A` it would be `0x41` in hexadecimal and `0b1000001` in binary.
+To convert this to an integer we will need to zero extend to the 31st place.
+Therefore our `A` would look like `0b00000000000000000000000001000001` and performing a left bit shift of 24 would convert our output to `0b10000010000000000000000000000000`.
+So, in short, we push our bits that encode an `A` to the most significant bit.
+This is done three more times, except we do a bit shift of `16`, then `8`, and then of `0`.
+All we are doing is smashing four hexadecimal characters together.
+If we originally had `ABCD` they would be encoded as `[0x41, 0x42, 0x43, 0x44]` in our `hexBytes` but then in the for loop, they are smashed together to equal `0x41424344` or `1094861636`.
+
+To get our flag all we need to do is decode the hardcoded values and translate them into their original 1 byte values and then convert them back to ASCII.
+
+```python
+dec = [1096770097, 1952395366,
+ 1600270708, 1601398833,
+ 1716808014, 1734304870,
+ 895891557, 1681142832]
+for d in dec:
+ value = hex(d)[2:]
+ for i in range(0, len(value), 2):
+ print(chr(int(value[i: i+2],16)),end ='')
+```
+
+Running the Python script we will get `A_b1t_0f_b1t_sh1fTiNg_df5f8ed440` which if we input into the program we get the success message.
+
+flag: `picoCTF{A_b1t_0f_b1t_sh1fTiNg_df5f8ed440}`
+
+# vault-door-8
+
+## Problem
+
+Apparently Dr. Evil's minions knew that our agency was making copies of their source code, because they intentionally sabotaged this source code in order to make it harder for our agents to analyze and crack into! The result is a quite mess, but I trust that my best special agent will find a way to solve it. The source code for this vault is here: [VaultDoor8.java](https://raw.githubusercontent.com/nadrojisk/CTF_Writeups/master/2019-PicoCTF/rev/solved/vault-door-8/VaultDoor8.java)
+
+Hint: Clean up the source code so that you can read it and understand what is going on.
+
+Hint: Draw a diagram to illustrate which bits are being switched in the scramble() method, then figure out a sequence of bit switches to undo it. You should be able to reuse the switchBits() method as is.
+
+## Solution
+
+Out of all the vault door challenge this took me the most amount of time.
+First things first, we need to clean up this obfuscated source code.
+I used [tutorialspoint online Java formatter](https://www.tutorialspoint.com/online_java_formatter.htm), but anything will do the trick.
+
+```java
+// These pesky special agents keep reverse engineering our source code and then
+// breaking into our secret vaults. THIS will teach those sneaky sneaks a
+// lesson.
+//
+// -Minion #0891
+import java.util.*;
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.*;
+class VaultDoor8 {
+ public static void main(String args[]) {
+ Scanner b = new Scanner(System.in);
+ System.out.print("Enter vault password: ");
+ String c = b.next();
+ String f = c.substring(8, c.length() - 1);
+ VaultDoor8 a = new VaultDoor8();
+ if (a.checkPassword(f)) {
+ System.out.println("Access granted.");
+ } else {
+ System.out.println("Access denied!");
+ }
+ }
+ public char[] scramble(String password) { /* Scramble a password by transposing pairs of bits. */
+ char[] a = password.toCharArray();
+ for (int b = 0; b < a.length; b++) {
+ char c = a[b];
+ c = switchBits(c, 1, 2);
+ c = switchBits(c, 0, 3); /* c = switchBits(c,14,3); c = switchBits(c, 2, 0); */
+ c = switchBits(c, 5, 6);
+ c = switchBits(c, 4, 7);
+ c = switchBits(c, 0, 1); /* d = switchBits(d, 4, 5); e = switchBits(e, 5, 6); */
+ c = switchBits(c, 3, 4);
+ c = switchBits(c, 2, 5);
+ c = switchBits(c, 6, 7);
+ a[b] = c;
+ }
+ return a;
+ }
+ public char switchBits(char c, int p1, int p2) {
+ /* Move the bit in position p1 to position p2, and move the bit
+ that was in position p2 to position p1. Precondition: p1 < p2 */
+ char mask1 = (char)(1 << p1);
+ char mask2 = (char)(1 << p2); /* char mask3 = (char)(1<<p1<<p2); mask1++; mask1--; */
+ char bit1 = (char)(c & mask1);
+ char bit2 = (char)(c & mask2);
+ /*
+ System.out.println("bit1 " + Integer.toBinaryString(bit1));
+ System.out.println("bit2 " + Integer.toBinaryString(bit2));
+ */
+ char rest = (char)(c & ~(mask1 | mask2));
+ char shift = (char)(p2 - p1);
+ char result = (char)((bit1 << shift) | (bit2 >> shift) | rest);
+ return result;
+ }
+ public boolean checkPassword(String password) {
+ char[] scrambled = scramble(password);
+ char[] expected = {
+ 0xF4,0xC0,0x97, 0xF0, 0x77, 0x97, 0xC0, 0xE4,
+ 0xF0, 0x77, 0xA4, 0xD0, 0xC5, 0x77, 0xF4, 0x86,
+ 0xD0, 0xA5, 0x45, 0x96, 0x27, 0xB5, 0x77, 0xC0,
+ 0xB4, 0xD1, 0xD2, 0x85, 0xA4, 0xA5, 0xC1,0x85};
+ return Arrays.equals(scrambled, expected);
+ }
+}
+```
+
+Instead of trying to figure out how the bit swapping works I just changed the source code by reversing the calls in `scramble`.
+We will also need to change the input parameter to a character array since we will no longer be passing it as a string.
+
+```java
+public char[] scramble(char [] a) {
+ for (int b = 0; b < a.length; b++) {
+ char c = a[b];
+ c = switchBits(c, 6, 7);
+ c = switchBits(c, 2, 5);
+ c = switchBits(c, 3, 4);
+ c = switchBits(c, 0, 1);
+ c = switchBits(c, 4, 7);
+ c = switchBits(c, 5, 6);
+ c = switchBits(c, 0, 3);
+ c = switchBits(c, 1, 2);
+ a[b] = c;
+ }
+ return a;
+}
+```
+
+If we then change `checkPassword` to pass expected to `scramble` we can de-scramble the obscured flag and print out the output we should receive the flag.
+An additional change to `checkPassword` is to remove the parameter that is passed to it.
+Also, we will need to change the main so it does not expect input from us anymore.
+
+```java
+public void checkPassword() {
+
+ char[] expected = {
+ 0xF4,0xC0,0x97, 0xF0, 0x77, 0x97, 0xC0, 0xE4,
+ 0xF0, 0x77, 0xA4, 0xD0, 0xC5, 0x77, 0xF4, 0x86,
+ 0xD0, 0xA5, 0x45, 0x96, 0x27, 0xB5, 0x77, 0xC0,
+ 0xB4, 0xD1, 0xD2, 0x85, 0xA4, 0xA5, 0xC1,0x85};
+ char[] descrambled = scramble(expected);
+ System.out.println(descrambled);
+}
+
+public static void main(String args[]) {
+ VaultDoor8 a = new VaultDoor8();
+ a.checkPassword();
+}
+```
+
+Now running the program we will get `s0m3_m0r3_b1t_sh1fTiNg_0c59dbf4d` as the output.
+Running the original program and supplying that as the input will give us the good boy message.
+Therefore, our flag is `picoCTF{s0m3_m0r3_b1t_sh1fTiNg_0c59dbf4d}`.
+
+# asm1
+
+## Problem
+
+What does asm1(0x1b4) return? Submit the flag as a hexadecimal value (starting with '0x'). NOTE: Your submission for this question will NOT be in the normal flag format. [Source](https://raw.githubusercontent.com/nadrojisk/CTF_Writeups/master/2019-PicoCTF/rev/solved/asm1/test.S) located in the directory at /problems/asm1_3_afba952b3219ced79409c353bf73fbd8.
+
+Hint: assembly [conditions](https://www.tutorialspoint.com/assembly_programming/assembly_conditions.htm)
+
+## Solution
+
+Looking at the assembly source code we see that there are multiple jump conditions we much pass.
+
+Our first condition is below.
+We check the value pointed to by EBP+0x8 against 0x421.
+Since this program took one parameter, 0x1b4, we know that EBP+0x8 is the address pointing to the first passed parameter. With EBP+0x4 being the program's runtime path.
+Since `0x1B4 < 0x421` we will not take the jump condition as it is `JG` or [jump greater](https://www.aldeid.com/wiki/X86-assembly/Instructions/jg), therefore, we will move onto line 12.
+
+```asm
+<+3>: cmp DWORD PTR [ebp+0x8],0x421
+<+10>: jg 0x512 <asm1+37>
+```
+
+In this check, we compare the passed parameter against `0x1B4`.
+Since `0x1B4 == 0x1B4` we will not take this jump as it is `jne` or [jump not equal(https://www.aldeid.com/wiki/X86-assembly/Instructions/jg); on to the next line.
+```asm
+<+12>: cmp DWORD PTR [ebp+0x8],0x1b4
+<+19>: jne 0x50a <asm1+29>
+```
+
+Here we move `0x421` into `EAX`.
+Following this, we perform `0x1B4 + 0x13`; after this operation, `EAX` will contain `0x1C7` and jump to line 60.
+
+```asm
+<+21>: mov eax,DWORD PTR [ebp+0x8]
+<+24>: add eax,0x13
+<+27>: jmp 0x529 <asm1+60>
+```
+
+We now clean up our stack and exit this function.
+Since EAX is treated as the return value we return `0x1C7`.
+Therefore, our flag is `0x1C7`.
+
+```asm
+<+60>: pop ebp
+<+61>: ret
+```
+
+# asm2
+
+## Problem
+
+What does asm2(0x6,0x24) return? Submit the flag as a hexadecimal value (starting with '0x'). NOTE: Your submission for this question will NOT be in the normal flag format. [Source](https://raw.githubusercontent.com/nadrojisk/CTF_Writeups/master/2019-PicoCTF/rev/solved/asm2/test.S) located in the directory at /problems/asm2_6_88bbaaae0b7723b33c39fce07d342e36.
+
+## Solution
+
+The program starts with the stack looking like so:
+
+```text
++---------+
+| 0x24 | <-- ebp + 0xc
++---------+
+| 0x6 | <-- ebp + 0x8
++---------+
+| ret | <-- ebp + 0x4
++---------+
+| old ebp | <-- ebp
++---------+
+```
+
+```asm
+<+0>: push ebp
+<+1>: mov ebp,esp
+<+3>: sub esp,0x10
+```
+
+After we set up the stack with the stack prologue it now looks like this:
+
+```text
++---------+
+| 0x24 | <-- ebp + 0xc
++---------+
+| 0x6 | <-- ebp + 0x8
++---------+
+| ret | <-- ebp + 0x4
++---------+
+| old ebp | <-- ebp
++---------+
+| | <-- ebp - 0x4
++---------+
+| | <-- ebp - 0x8
++---------+
+| | <-- ebp - 0xc
++---------+
+| | <-- ebp - 0x10
++---------+
+```
+
+This program starts by loading the second passed parameter, `0x24`, into `EAX`.
+Following this, we load the contents of `EAX` into temporary storage at `EBP-0x4`, essentially `EBP-0x4` points to the second parameter.
+We do the same for the first parameter, `0x6`, but have it stored at `EBP-0x8` and then jump to line 31.
+
+```asm
+<+6>: mov eax,DWORD PTR [ebp+0xc] ; eax = 0x24
+<+9>: mov DWORD PTR [ebp-0x4],eax ; var1 = 0x24
+<+12>: mov eax,DWORD PTR [ebp+0x8] ; eax = 0x6
+<+15>: mov DWORD PTR [ebp-0x8],eax ; var2 = 0x6
+<+18>: jmp 0x50c <asm2+31>
+```
+
+After this code block our stack will look like this:
+
+```text
++---------+
+| 0x24 | <-- ebp + 0xc
++---------+
+| 0x6 | <-- ebp + 0x8
++---------+
+| ret | <-- ebp + 0x4
++---------+
+| old ebp | <-- ebp
++---------+
+| 0x24 | <-- ebp - 0x4
++---------+
+| 0x6 | <-- ebp - 0x8
++---------+
+| | <-- ebp - 0xc
++---------+
+| | <-- ebp - 0x10
++---------+
+```
+
+Here we check and see if the value at `EBP-0x8` less than or equal to `0x3C75`.
+Currently `EBP-0x8` contains `0x6` therefore we will make the jump to line 20.
+
+```asm
+<+31>: cmp DWORD PTR [ebp-0x8],0x3c75
+<+38>: jle 0x501 <asm2+20>
+```
+
+At line 20 we add `0x1` to `EBP-0x4` and add `0xF9` to `EBP-0x8`.
+Then we do the same compare and conditional jump.
+For the jump to fail `EBP-0x8` needs to be greater than `0x501`.
+Since we add `0xF9` each time to `EBP-0x8` it will take 63 iterations to complete.
+
+```asm
+<+20>: add DWORD PTR [ebp-0x4],0x1
+<+24>: add DWORD PTR [ebp-0x8],0xf9
+<+31>: cmp DWORD PTR [ebp-0x8],0x3c75
+<+38>: jle 0x501 <asm2+20>
+```
+After the first iteration of our loop our stack will look like:
+
+```text
++---------+
+| 0x24 | <-- ebp + 0xc
++---------+
+| 0x6 | <-- ebp + 0x8
++---------+
+| ret | <-- ebp + 0x4
++---------+
+| old ebp | <-- ebp
++---------+
+| 0x25 | <-- ebp - 0x4
++---------+
+| 0xff | <-- ebp - 0x8
++---------+
+| | <-- ebp - 0xc
++---------+
+| | <-- ebp - 0x10
++---------+
+```
+
+After not jumping we load `EAX` with EBP-0x4.
+Since we ran the loop 63 times EBP-0x4 will equal `0x63` (`0x24 + 63`).
+We then clean up the stack and leave the function.
+
+```asm
+<+40>: mov eax,DWORD PTR [ebp-0x4]
+<+43>: leave
+<+44>: ret
+```
+
+# asm3
+
+## Problem
+
+What does asm3(0xfe8cf7a4,0xf55018af,0xb8c70926) return? Submit the flag as a hexadecimal value (starting with '0x'). NOTE: Your submission for this question will NOT be in the normal flag format. [Source](https://raw.githubusercontent.com/nadrojisk/CTF_Writeups/master/2019-PicoCTF/rev/solved/asm3/test.S) located in the directory at /problems/asm3_6_22c78ed107ca0b7dd11f868d7203cf8c.
+
+## Solution
+
+```asm
+<+0>: push ebp
+<+1>: mov ebp,esp
+<+3>: xor eax,eax
+```
+
+After we setup the stack with the first two lines and clear `EAX` our stack will look like this:
+
+```text
++----------------+
+| 0xb8c70926 | <-- ebp + 0x10
++----------------+
+| 0xf55018af | <-- ebp + 0xc
++----------------+
+| 0xfe8cf7a4 | <-- ebp + 0x8
++----------------+
+| ret | <-- ebp + 0x4
++----------------+
+| old ebp | <-- ebp
++----------------+
+```
+
+
+```asm
+<+5>: mov ah,BYTE PTR [ebp+0x9]
+<+8>: shl ax,0x10
+```
+
+We then load EBP+0x9 into `AH` which will be `0xF7`.
+Following this, we perform a shift on `AX` which contains `0xF700`.
+Performing a left shift of 16 will completely shift everything off of `AX`, therefore, `AX` after this operation will contain 0.
+
+| Index | EBP+Index |
+|:------------:|:-----------:|
+| 0x8 | 0xA4 |
+| 0x9 | 0xF7 |
+| 0xA | 0x8C |
+| 0xB | 0xFE |
+| 0xC | 0xAF |
+
+```asm
+<+12>: sub al,BYTE PTR [ebp+0xd] ; AL = 0x0 - 0x18 = 0xE8
+```
+
+After the prior shift left we will subtract AL by the contents of `EBP+0xD`; which is `0x18`.
+Performing this operation will set `AL` with `0xE8`, which is a negative 0x18 in two's complement.
+
+```asm
+<+15>: add ah,BYTE PTR [ebp+0xe] AH = 0x0 + 0x50 = 0x50
+```
+
+Now we add `EBP+0xE` to AH; which is `0x50`. Since AH is still 0x0 from last time the resulting operation will have `AH` be `0x50`.
+
+```asm
+<+18>: xor ax,WORD PTR [ebp+0x12]
+```
+
+Then we perform an XOR operation on AX with `EBP+0x12`; which is `0xE82F`.
+So the value in AX after this operation will be 0x502F
+NOTE: This time the value we pull is larger. This is because we use the WORD keyword instead of BYTE as we have done in the past.
+This little difference tripped me up the first time attempting this challenge.
+Therefore, our flag is `0xE82F`.
+
+# asm4
+
+## Problem
+
+What will asm4("picoCTF_c1373") return? Submit the flag as a hexadecimal value (starting with '0x'). NOTE: Your submission for this question will NOT be in the normal flag format. [Source](https://raw.githubusercontent.com/nadrojisk/CTF_Writeups/master/2019-PicoCTF/rev/solved/asm4/test.S) located in the directory at /problems/asm4_5_ca12dca0134f6b54a52c905ffc1e5b35.
+
+## Solution
+
+```asm
+<+0>: push ebp
+<+1>: mov ebp,esp
+<+3>: push ebx
+<+4>: sub esp,0x10
+```
+After the stack prologue our stack will look like this:
+
+```text
++----------------+
+| picoCTF_c1373 | <-- ebp + 0x8
++----------------+
+| ret | <-- ebp + 0x4
++----------------+
+| old ebp | <-- ebp
++----------------+
+| | <-- ebp - 0x4
++----------------+
+| | <-- ebp - 0x8
++----------------+
+| | <-- ebp - 0xc
++----------------+
+| | <-- ebp - 0x10
++----------------+
+```
+
+```asm
+<+7>: mov DWORD PTR [ebp-0x10],0x247 ; var2 = 0x247
+<+14>: mov DWORD PTR [ebp-0xc],0x0 ; var1 = 0
+<+21>: jmp 0x518 <asm4+27>
+```
+
+The first few lines will load some hardcoded values into local variables.
+After these lines the stack will look like this:
+
+```text
++----------------+
+| picoCTF_c1373 | <-- ebp + 0x8
++----------------+
+| ret | <-- ebp + 0x4
++----------------+
+| old ebp | <-- ebp
++----------------+
+| | <-- ebp - 0x4
++----------------+
+| | <-- ebp - 0x8
++----------------+
+| 0x0 | <-- ebp - 0xc
++----------------+
+| 0x247 | <-- ebp - 0x10
++----------------+
+```
+
+1 and 1 = 1, ZF = 0
+
+```asm
+<+23>: add DWORD PTR [ebp-0xc],0x1 ; var1 += 1
+<+27>: mov edx,DWORD PTR [ebp-0xc] ; edx = var1
+<+30>: mov eax,DWORD PTR [ebp+0x8] ; eax = input
+<+33>: add eax,edx ; eax = input[var1]
+<+35>: movzx eax,BYTE PTR [eax] ;
+<+38>: test al,al ; if al != 0
+<+40>: jne 0x514 <asm4+23> ; jump 23
+```
+
+We now enter a loop block, line 23 is the loop counter incrementer but as this is the first iteration of the loop we skip over it.
+In the loop, we add the counter to the input character array, which starts as `picoCTF_c1373`.
+Then we do a test on the lower 8 bits of EAX.
+If the lower 8 bits are 0 then we will leave the loop otherwise we increment the loop counter at var1 and start again.
+
+The only way for those bits to be zero is if we reach the null character in the character array; which denotes the end of the array.
+What this code block is doing is just getting the length of the input array; which is 13 characters long.
+
+```asm
+<+42>: mov DWORD PTR [ebp-0x8],0x1 ; var3 = 0
+<+49>: jmp 0x587 <asm4+138>
+```
+
+Now we create a new local variable on the stack.
+So after this, our stack will look like this.
+
+```text
++----------------+
+| picoCTF_c1373 | <-- ebp + 0x8
++----------------+
+| ret | <-- ebp + 0x4
++----------------+
+| old ebp | <-- ebp
++----------------+
+| | <-- ebp - 0x4
++----------------+
+| 0x1 | <-- ebp - 0x8
++----------------+
+| 0xd | <-- ebp - 0xc
++----------------+
+| 0x247 | <-- ebp - 0x10
++----------------+
+```
+
+```asm
+<+138>: mov eax,DWORD PTR [ebp-0xc] ; eax = var1
+<+141>: sub eax,0x1 ; eax -= 1
+<+144>: cmp DWORD PTR [ebp-0x8],eax if var3 < eax
+<+147>: jl 0x530 <asm4+51> jump 51
+```
+
+In this code block, we load var1 into EAX and decrement by 1 and compare it to var3 which is currently 1.
+If var3 is less than EAX we take a jump.
+Since during this first loop EAX contains 0xC and var3 contains 1 it is less so we do take the jump.
+
+```
+<+51>: mov edx,DWORD PTR [ebp-0x8] ; edx = var3
+<+54>: mov eax,DWORD PTR [ebp+0x8] ; eax = arg1
+<+57>: add eax,edx ; eax = eax[edx]
+<+59>: movzx eax,BYTE PTR [eax]
+<+62>: movsx edx,al ; edx = eax
+```
+
+Here we load EDX with var3, currently 1, and EAX with arg1, the character array.
+Then we get the character located at the index of var3. So for this first iteration, we grab the character at index 1, so `i`, and load it into EDX.
+
+```asm
+<+65>: mov eax,DWORD PTR [ebp-0x8] ; eax = var3
+<+68>: lea ecx,[eax-0x1] ; ecx = eax - 1
+<+71>: mov eax,DWORD PTR [ebp+0x8] ; eax = arg1
+<+74>: add eax,ecx ; eax[ecx]
+<+76>: movzx eax,BYTE PTR [eax]
+<+79>: movsx eax,al
+<+82>: sub edx,eax ; edx -= eax
+<+84>: mov eax,edx ; eax = edx
+<+86>: mov edx,eax ; edx = eax
+```
+
+Here we load EAX with var3 and then load ECX with EAX - 1.
+We then grab the index of the character array specified by ECX, which is currently 0.
+
+So as of right now, EAX contains `p` and EDX contains `i`.
+After loading EAX with the sign-extended version of AL, we subtract EDX with EAX.
+So we subtract `p` with `i` and load it into EDX.
+In other words we calculate `arg1[i] - arg1[i-1]`.
+For this first iteration EDX contains 0xFFF9.
+
+```asm
+<+88>: mov eax,DWORD PTR [ebp-0x10] ; eax = var1
+<+91>: lea ebx,[edx+eax*1] ; ebx = edx + eax * 1
+<+94>: mov eax,DWORD PTR [ebp-0x8] ; eax = var2
+<+97>: lea edx,[eax+0x1] ; edx = eax + 1
+<+100>: mov eax,DWORD PTR [ebp+0x8] ; eax = arg1
+<+103>: add eax,edx ; eax = eax[edx]
+<+105>: movzx eax,BYTE PTR [eax]
+<+108>: movsx edx,al ; edx = al
+```
+
+Now we load EAX with var1, 0x247, and calculate EDX + EAX * 1; 0xFFF9 + 0x247 * 1; so EBX will contain 0x240.
+Then we load EAX with var3, which is currently 1.
+Then we load EDX with EAX + 1, which during this first iteration is 0x1 + 1 = 0x2.
+Then we get the character at index EAX + 1 or index 2 for the first loop; so EDX will be `c`.
+
+```asm
+<+111>: mov ecx,DWORD PTR [ebp-0x8] ; ecx = var2
+<+114>: mov eax,DWORD PTR [ebp+0x8] ; eax = arg1
+<+117>: add eax,ecx ; eax = eax[ecx]
+<+119>: movzx eax,BYTE PTR [eax]
+<+122>: movsx eax,al
+<+125>: sub edx,eax ; edx -= eax
+<+127>: mov eax,edx ; eax = edx
+<+129>: add eax,ebx ; eax += edx
+```
+
+In this block, we grab `arg1[var2]` which in the first iteration is `i` since var2 is 1.
+Then we once again subtract two characters from each other.
+This time we calculate `arg1[i+1] - arg1[i]` and load it into EDX.
+Then we add the result to `EBX` which contains 0x240 from earlier and set that into EAX.
+
+```asm
+<+131>: mov DWORD PTR [ebp-0x10],eax
+<+134>: add DWORD PTR [ebp-0x8],0x1
+<+138>: mov eax,DWORD PTR [ebp-0xc]
+<+141>: sub eax,0x1
+<+144>: cmp DWORD PTR [ebp-0x8],eax
+<+147>: jl 0x530 <asm4+51>
+```
+We then load var1 with the contents of EAX.
+We also increment var3 by 1 and decrement var2 by 1 and check to see if var3 is less than var2.
+If it is still we loop again.
+
+So after this first iteration of the loop our stack will look like this:
+
+```text
++----------------+
+| picoCTF_c1373 | <-- ebp + 0x8
++----------------+
+| ret | <-- ebp + 0x4
++----------------+
+| old ebp | <-- ebp
++----------------+
+| | <-- ebp - 0x4
++----------------+
+| 0x2 | <-- ebp - 0x8
++----------------+
+| 0xd | <-- ebp - 0xc
++----------------+
+| 0x23a | <-- ebp - 0x10
++----------------+
+```
+
+We can port the algorithm that this assembly does to Python with the below code snippet.
+Running the code snippet will give us `0x1DE`; which if we submit to the pico site we get a success.
+
+```python
+arg1 = "picoCTF_c1373"
+strlen = len(arg1)
+seed = 0x247
+
+x = 1
+while x < strlen - 1:
+ var1 = ord(arg1[x]) - ord(arg1[x-1])
+ aux = var1 + seed * 1
+ var2 = ord(arg1[x+1]) - ord(arg1[x])
+ var2 += aux
+ seed = var2
+ x += 1
+print(hex(seed))
+```
+
+# reverse_cipher
+
+## Problem
+
+We have recovered a [binary](https://github.com/nadrojisk/CTF_Writeups/raw/master/2019-PicoCTF/rev/solved/reverse_cipher/rev) and a [text file](https://raw.githubusercontent.com/nadrojisk/CTF_Writeups/master/2019-PicoCTF/rev/solved/reverse_cipher/rev_this). Can you reverse the flag. Its also found in /problems/reverse-cipher_1_2df63c1ee06e5ed37e35622b009f92ff on the shell server.
+
+Hint: objdump and Gihdra are some tools that could assist with this
+
+## Solution
+
+Loading rev into IDA we can start to reverse engineer this binary.
+IDA should automatically dump you into main for this binary, note it will not always be that way.
+For the first code blocks that IDA generates we see that the binary tries to load two files `flag.txt` and `rev_this`.
+If they cannot be opened error messages are printed to the screen.
+
+![](https://raw.githubusercontent.com/nadrojisk/CTF_Writeups/master/2019-PicoCTF/rev/solved/reverse_cipher/open_error.png)
+
+Otherwise, we will use the file pointer to the `flag.txt` file to read 1 element of 24 bytes from the file.
+The total number of elements read is stored into `EBP-0x24` and compared with 0.
+If zero bytes were read the program exits; otherwise the characters read are stored in `EBP-0x50`.
+We then set a loop counter up and enter a loop that checks to see if the counter is less than or equal to 7.
+Each iteration of the loop places a character from flag.txt into rev_this; since we run this 8 times this will place `picoCTF{` into `rev_this`.
+
+After the loop, we change the loop variable from 7 to 8 and move on.
+
+![](https://raw.githubusercontent.com/nadrojisk/CTF_Writeups/master/2019-PicoCTF/rev/solved/reverse_cipher/first_7_chars.png)
+
+In the next loop, we check and see if the loop variable is less than or equal to 0x16.
+Inside the loop, we load the current character of the array into a local variable.
+Then we check and see if the loop counter is even or odd.
+If it is odd we subtract 2 from the current character, otherwise, we add 5 to it.
+Then we place this modified character into `rev_this`.
+After we do this 15 times we leave the loop, place the last character of `flag.txt` into `rev_this` and cleanup.
+
+![](https://raw.githubusercontent.com/nadrojisk/CTF_Writeups/master/2019-PicoCTF/rev/solved/reverse_cipher/flag_chars.png)
+
+
+To decode this we will need to perform the opposite of the operations that we performed on each value.
+Therefore, odd values will need to have 2 added to each character and evens 5 subtracted from each character.
+
+```python
+for counter, x in enumerate("w1{1wq8b5.:/f.<"):
+ if not counter % 2:
+ print(chr(ord(x) - 5), end='')
+ else:
+ print(chr(ord(x) + 2), end='')
+```
+
+Running the above script we get `r3v3rs3d0051a07`. Therefore, our flag is `picoCTF{r3v3rs3d0051a07}`.
+
+
+# Need For Speed
+
+## Problem
+
+The name of the game is [speed](https://www.youtube.com/watch?v=8piqd2BWeGI). Are you quick enough to solve this problem and keep it above 50 mph? [need-for-speed](https://github.com/nadrojisk/CTF_Writeups/raw/master/2019-PicoCTF/rev/solved/need%20for%20speed/need-for-speed).
+
+## Solution
+
+If we run this program straight out of the box it will tell us we are not fast enough.
+
+![](https://raw.githubusercontent.com/nadrojisk/CTF_Writeups/master/2019-PicoCTF/rev/solved/need%20for%20speed/vanilla-run.png)
+
+Let's open this binary open in IDA and see what is going on.
+
+![](https://raw.githubusercontent.com/nadrojisk/CTF_Writeups/master/2019-PicoCTF/rev/solved/need%20for%20speed/main.png)
+
+The main method is not too interesting as all the functionality has been refactored into functions that are called.
+Let's first check out `header`.
+
+![](https://raw.githubusercontent.com/nadrojisk/CTF_Writeups/master/2019-PicoCTF/rev/solved/need%20for%20speed/header.png)
+
+In `header` we see that it prints off the message `Keep this thing over 50 mph!` plus a loop that prints off multiple `=`s.
+After the loop is done we print a newline character.
+
+![](https://raw.githubusercontent.com/nadrojisk/CTF_Writeups/master/2019-PicoCTF/rev/solved/need%20for%20speed/set_timer.png)
+
+The function that is called after `header` is `set_timer`.
+In this function, we call `__sysv_signal` with a signal of 0xE meaning [SIGALRM](https://code.woboq.org/gcc/include/bits/signum-generic.h.html) and a handler of `alarm_handler`.
+`__sysv_signal` handles [signals](http://man7.org/linux/man-pages/man3/sysv_signal.3.html) triggered by the operating system. In this case, we are setting up a handling routing for `SIGALRM`.
+If the `__sysv_signal` function works properly we call [`alarm`](http://man7.org/linux/man-pages/man2/alarm.2.html) with 1 second for a timer.
+
+![](https://raw.githubusercontent.com/nadrojisk/CTF_Writeups/master/2019-PicoCTF/rev/solved/need%20for%20speed/alarm.png)
+
+When the 1-second timer goes off `alarm` triggers a SIGALRM which is handled by `alarm_handler`; which simply prints `Not fast enough. BOOM!` and exits the program.
+
+![](https://raw.githubusercontent.com/nadrojisk/CTF_Writeups/master/2019-PicoCTF/rev/solved/need%20for%20speed/alarm.png)
+
+After we exit this function we move on to `get_key`; which first prints that the key is being created and then move to `calculate_key`.
+
+![](https://raw.githubusercontent.com/nadrojisk/CTF_Writeups/master/2019-PicoCTF/rev/solved/need%20for%20speed/calc_key.png)
+
+This function starts a loop an 0xD8C2071C and counts down to 0xEC61038E.
+Once at that value we return 0xEC61038E as the key.
+This is where the program is failing to pass, as when we ran the program initially it prints `Creating key...` but not `Finished`.
+Since our alarm only gives us 1 second to complete the program after it is set this loop is slowing us down enough to not allow the program to complete.
+
+We have a few ways to solve this.
+1. Patch the original binary to change 0xD8C2071C to 0xEC61038F so it only takes one iteration of the loop block
+2. Change the alarms parameter to be greater than 1 second.
+3. Run the program in a wrapper that suppresses signals such as GDB.
+
+The third solution is the easiest but not the most engaging, however, we have more challenges ahead of us so we will just do that.
+
+![](https://raw.githubusercontent.com/nadrojisk/CTF_Writeups/master/2019-PicoCTF/rev/solved/need%20for%20speed/gdb.png)
+
+Running the program with gdb we get this output; with our flag being `picoCTF{Good job keeping bus #236cb1c9 speeding along!}`
+
+# Time's Up
+
+## Problem
+
+Time waits for no one. Can you solve this before time runs out? [times-up](https://github.com/nadrojisk/CTF_Writeups/raw/master/2019-PicoCTF/rev/solved/times%20up/times-up), located in the directory at /problems/time-s-up_5_44ffbb55dd7707c9e13da8551841f850.
+
+## Solution
+
+If you run the program it will print out an equation that it wants you to solve.
+This binary is similar to the one before in the sense that they are both timed.
+Unfortunately, the amount of time required to solve the equation by hand is way more than the time allotted.
+To solve this we can use a script that uses [pwntools](http://docs.pwntools.com/en/stable/) a popular exploit development library.
+
+```python
+from pwn import *
+
+p = process('./times-up')
+formula = p.recvline().split(':')[1].strip()
+p.recvline()
+print(formula)
+exec('a=' + formula)
+p.sendline(str(a))
+p.interactive()
+```
+
+This solution will need to be run on the pico server as it reads flag.txt.
+Running this on the pico server we get `picoCTF{Gotta go fast. Gotta go FAST. #3c4b5166}`.
