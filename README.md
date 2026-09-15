@@ -25,4 +25,4 @@ Posts and pages live under `content/`; components, layouts, and site config live
 
 ## Deployment
 
-Pushes to `master` are built and deployed to GitHub Pages by [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml). Pull requests run [`.github/workflows/ci.yml`](.github/workflows/ci.yml), which must pass before merging — `master` is a protected branch and does not accept direct pushes.
+Pushes to `main` are built and deployed to GitHub Pages by [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml). Pull requests run [`.github/workflows/ci.yml`](.github/workflows/ci.yml), which must pass before merging — `main` is a protected branch and does not accept direct pushes.
