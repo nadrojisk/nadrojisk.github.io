@@ -24,10 +24,12 @@ export const siteConfig: SiteConfig = {
 	showLogo: true,
 	// Date.prototype.toLocaleDateString() parameters, found in src/utils/date.ts.
 	date: {
+		locale: "en-US",
 		options: {
 			day: "numeric",
 			month: "short",
 			year: "numeric",
+			timeZone: "UTC",
 		},
 	},
 };
