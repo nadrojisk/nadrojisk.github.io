@@ -64,7 +64,7 @@ export const expressiveCodeOptions: AstroExpressiveCodeOptions = {
 		showLineNumbers: true,
 	},
 	styleOverrides: {
-		borderRadius: "4px",
+		borderRadius: "0px",
 		codeFontFamily:
 			'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
 		codeFontSize: "0.875rem",
