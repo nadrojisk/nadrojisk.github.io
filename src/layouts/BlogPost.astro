@@ -58,6 +58,19 @@ const readingTime: string = remarkPluginFrontmatter.readingTime;
 			<path d="M4.5 15.75l7.5-7.5 7.5 7.5" stroke-linecap="round" stroke-linejoin="round"></path>
 		</svg>
 	</button>
+	<div
+		class="fixed inset-0 z-100 hidden items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
+		id="image-lightbox"
+	>
+		<button
+			aria-label="Close enlarged image"
+			class="absolute end-4 top-4 cursor-pointer text-4xl leading-none text-white hover:text-zinc-300"
+			id="lightbox-close"
+		>
+			&times;
+		</button>
+		<img alt="" class="max-h-full max-w-full rounded object-contain" id="lightbox-img" src="" />
+	</div>
 </BaseLayout>
 
 <script>
@@ -77,4 +90,34 @@ const readingTime: string = remarkPluginFrontmatter.readingTime;
 
 	const observer = new IntersectionObserver(callback);
 	observer.observe(targetHeader);
+
+	const lightbox = document.getElementById("image-lightbox") as HTMLDivElement;
+	const lightboxImg = document.getElementById("lightbox-img") as HTMLImageElement;
+	const lightboxClose = document.getElementById("lightbox-close") as HTMLButtonElement;
+
+	function openLightbox(img: HTMLImageElement) {
+		lightboxImg.src = img.currentSrc || img.src;
+		lightboxImg.alt = img.alt;
+		lightbox.classList.replace("hidden", "flex");
+		document.body.style.overflow = "hidden";
+	}
+
+	function closeLightbox() {
+		lightbox.classList.replace("flex", "hidden");
+		lightboxImg.src = "";
+		document.body.style.overflow = "";
+	}
+
+	document.querySelectorAll<HTMLImageElement>(".prose img").forEach((img) => {
+		img.classList.add("cursor-zoom-in");
+		img.addEventListener("click", () => openLightbox(img));
+	});
+
+	lightboxClose.addEventListener("click", closeLightbox);
+	lightbox.addEventListener("click", (event) => {
+		if (event.target === lightbox) closeLightbox();
+	});
+	document.addEventListener("keydown", (event) => {
+		if (event.key === "Escape") closeLightbox();
+	});
 </script>

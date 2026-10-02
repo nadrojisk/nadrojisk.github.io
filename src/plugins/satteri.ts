@@ -2,6 +2,7 @@ import type { Image, Nodes, Parents } from "mdast";
 import { toString as mdastToString } from "mdast-util-to-string";
 import getReadingTime from "reading-time";
 import type { HastPluginDefinition, MdastPluginDefinition } from "satteri";
+import { h } from "@/utils/remark";
 
 export function satteriAutolinkHeadingsPlugin(): HastPluginDefinition {
 	return {
@@ -52,15 +53,15 @@ export function satteriReadingTimePlugin(): () => MdastPluginDefinition {
 	};
 }
 
-export function satteriUnwrapImagesPlugin(): MdastPluginDefinition {
+export function satteriFigurePlugin(): MdastPluginDefinition {
 	return {
-		name: "cactus-unwrap-images",
-		paragraph(node): Image | undefined {
+		name: "cactus-figure",
+		paragraph(node) {
 			const child = node.children[0];
-			if (node.children.length === 1 && child?.type === "image") {
-				return child;
-			}
-			return;
+			if (node.children.length !== 1 || child?.type !== "image") return;
+			if (!child.alt) return child as Image;
+
+			return h("figure", {}, [child, h("figcaption", {}, [{ type: "text", value: child.alt }])]);
 		},
 	};
 }

@@ -15,9 +15,9 @@ import { satteriGithubCardPlugin } from "./src/plugins/github-cards";
 import {
 	satteriAutolinkHeadingsPlugin,
 	satteriExternalLinksPlugin,
+	satteriFigurePlugin,
 	satteriFootnoteLabelPlugin,
 	satteriReadingTimePlugin,
-	satteriUnwrapImagesPlugin,
 } from "./src/plugins/satteri";
 import { expressiveCodeOptions, siteConfig } from "./src/site.config";
 
@@ -77,7 +77,7 @@ export default defineConfig({
 		processor: satteri({
 			features: { directive: true },
 			mdastPlugins: [
-				satteriUnwrapImagesPlugin(),
+				satteriFigurePlugin(),
 				satteriReadingTimePlugin(),
 				satteriGithubCardPlugin(),
 				satteriAdmonitionsPlugin(),
