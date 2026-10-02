@@ -138,6 +138,24 @@
 		border-radius: 0.25rem;
 		padding: 0.5rem;
 	}
+
+	/* images narrower than the (now wide) prose column shouldn't be
+	   stretched past their native resolution -- center them instead of
+	   leaving them flush left with dead space to their right */
+	.prose img,
+	.prose figure {
+		margin-inline: auto;
+	}
+	.prose img {
+		display: block;
+	}
+	.prose figure {
+		width: fit-content;
+		max-width: 100%;
+	}
+	.prose figure figcaption {
+		text-align: center;
+	}
 }
 
 @layer components {
