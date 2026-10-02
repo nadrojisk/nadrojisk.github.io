@@ -19,10 +19,6 @@ export default {
 						blockquote: {
 							borderLeftWidth: "0",
 						},
-						code: {
-							border: "1px dotted #666",
-							borderRadius: "2px",
-						},
 						kbd: {
 							"&:where([data-theme='dark'], [data-theme='dark'] *)": {
 								background: "var(--color-global-text)",

@@ -176,10 +176,19 @@
 	--tw-prose-bold: var(--color-global-text);
 	--tw-prose-bullets: var(--color-global-text);
 	--tw-prose-captions: var(--color-muted);
-	--tw-prose-code: var(--color-global-text);
+	--tw-prose-code: var(--color-link);
 	--tw-prose-headings: var(--color-accent-2);
 	--tw-prose-hr: 0.5px dashed #666;
 	--tw-prose-links: var(--color-global-text);
 	--tw-prose-quotes: var(--color-quote);
 	--tw-prose-th-borders: #666;
+}
+
+/* Tailwind Typography inserts literal backticks around inline code via its
+   own ::before/::after rules in the (highest-priority) utilities layer, so
+   an override inside any @layer loses to it regardless of specificity.
+   Staying unlayered here guarantees this wins per the cascade-layers spec. */
+.prose code::before,
+.prose code::after {
+	content: none;
 }
